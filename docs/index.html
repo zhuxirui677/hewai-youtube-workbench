@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>和为 YouTube 社媒工作台</title>
+  <meta name="description" content="和为团队的 YouTube 单平台内容、发布与数据运营工作台。">
+  <link rel="icon" href="favicon.svg">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .view{display:none}.view.active{display:block}.static-table{padding:3px 20px}.static-row{display:grid;grid-template-columns:72px 1fr 72px 80px;gap:12px;align-items:center;padding:14px 0;border-bottom:1px solid #eef0ed}.static-row:last-child{border-bottom:0}.static-row .thumb{width:72px}.static-row strong,.static-row small{display:block}.static-row strong{font-size:11px}.static-row small{font-size:9px;color:#929591;margin-top:5px}.chart-block{padding:25px}.large-bars{height:250px}.large-bars .bar-wrap span{font-size:9px}.offline-badge{background:#fff3dc;color:#9b5c0b;border-radius:20px;padding:5px 9px;font-size:9px}.modal-backdrop[hidden]{display:none}.nav-title{display:inline}.site-foot{font-size:9px;color:#999;text-align:center;padding:28px 0 0}
+    @media(max-width:700px){.nav-title{display:none}.static-row{grid-template-columns:58px 1fr auto}.static-row>span:last-child{display:none}}
+  </style>
+</head>
+<body>
+<main class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-mark">H</div><div><strong>和为社媒</strong><span>YouTube 工作台</span></div></div>
+    <nav class="side-nav" aria-label="主导航">
+      <button class="active" data-tab="overview"><span class="mini-icon">⌂</span><span class="nav-title">总览</span></button>
+      <button data-tab="content"><span class="mini-icon">▤</span><span class="nav-title">内容</span></button>
+      <button data-tab="publish"><span class="mini-icon">▷</span><span class="nav-title">发布</span><span class="nav-count">2</span></button>
+      <button data-tab="analytics"><span class="mini-icon">⌁</span><span class="nav-title">数据</span></button>
+    </nav>
+    <div class="workspace-note"><span class="note-label">公开演示版本</span><p>当前仅覆盖 YouTube，真实账号与数据接口尚未接入。</p></div>
+    <div class="profile"><div class="avatar">ZR</div><div><strong>和为运营组</strong><span>管理员</span></div><button>•••</button></div>
+  </aside>
+  <section class="workspace">
+    <header class="topbar"><div class="mobile-brand">和为 YouTube</div><div class="connection"><span class="connection-dot"></span>YouTube 账号待接入</div><div class="top-actions"><span class="offline-badge">演示环境</span><button class="primary-button" id="newTask"><span>＋</span> 新建视频任务</button></div></header>
+    <div class="content-wrap">
+      <div class="page-heading"><div><p class="date-line">2026年8月25日 · 周二</p><h1 id="pageTitle">早上好，今天先推进这 3 件事</h1></div><button class="ghost-button" id="refresh">↻ 刷新</button></div>
+      <section class="view active" id="overview">
+        <section class="connect-banner"><div class="youtube-badge"><span>▶</span></div><div class="connect-copy"><strong>连接 YouTube 频道，开始同步真实数据</strong><p>接入后可同步视频、评论、观看与订阅数据，并管理发布队列。</p></div><button id="connect">连接频道</button></section>
+        <section class="priority-grid">
+          <article class="priority-card red"><div class="priority-top"><span class="mini-icon">✓</span><span>内容审核</span><b>01</b></div><h2>1 条视频待审核</h2><p>产品选型指南已完成剪辑与字幕</p><button data-jump="content">立即审核 <span>→</span></button></article>
+          <article class="priority-card amber"><div class="priority-top"><span class="mini-icon">◷</span><span>本周排期</span><b>02</b></div><h2>2 个档期未填充</h2><p>周四、周日仍缺少发布内容</p><button data-jump="publish">安排内容 <span>→</span></button></article>
+          <article class="priority-card ink"><div class="priority-top"><span class="mini-icon">!</span><span>账号接入</span><b>03</b></div><h2>数据权限待确认</h2><p>需开通 YouTube Analytics 读取权限</p><button class="notify">查看清单 <span>→</span></button></article>
+        </section>
+        <section class="metric-row"><div><span>本月已发布</span><strong>6</strong><small>演示数据</small></div><div><span>总观看时长</span><strong>428.6<em>h</em></strong><small class="up">↑ 18.4%</small></div><div><span>平均观看率</span><strong>42.8<em>%</em></strong><small class="up">↑ 4.1%</small></div><div><span>新增订阅</span><strong>+186</strong><small class="up">↑ 12.7%</small></div></section>
+        <section class="dashboard-grid">
+          <article class="panel schedule-panel"><div class="panel-head"><div><h3>近期内容</h3><p>从策划到发布，一眼看清进度</p></div><button data-jump="content">查看全部</button></div><div class="video-list">
+            <div class="video-row"><div class="thumb thumb-1"><span>04:26</span></div><div class="video-copy"><strong>Contactor Selection Guide: 3 Specs That Matter</strong><span>产品科普 · Lynn</span></div><div class="video-state"><span class="status status-待审核">待审核</span><span>8月27日 10:00</span></div></div>
+            <div class="video-row"><div class="thumb thumb-2"><span>06:10</span></div><div class="video-copy"><strong>Inside a DC Contactor: How Arc Control Works</strong><span>技术拆解 · Eric</span></div><div class="video-state"><span class="status status-制作中">制作中</span><span>8月29日 10:00</span></div></div>
+            <div class="video-row"><div class="thumb thumb-3"><span>02:48</span></div><div class="video-copy"><strong>HIITIO at RE+ 2026 — What We’re Bringing</strong><span>品牌动态 · Mia</span></div><div class="video-state"><span class="status status-已排期">已排期</span><span>9月1日 10:00</span></div></div>
+          </div></article>
+          <article class="panel trend-panel"><div class="panel-head"><div><h3>观看趋势</h3><p>最近 8 周 · 演示数据</p></div><button data-jump="analytics">详情</button></div><div class="chart-area"><div class="chart-y"><span>8k</span><span>4k</span><span>0</span></div><div class="bars" id="smallBars"></div></div><div class="chart-summary"><div><span>本周期观看</span><strong>32,840</strong></div><div><span>较前周期</span><strong class="up">+16.2%</strong></div></div></article>
+        </section>
+      </section>
+      <section class="view" id="content"><article class="panel content-panel"><div class="panel-head"><div><h3>内容任务</h3><p>管理脚本、剪辑、审核与成片状态</p></div><button id="filterBtn">仅看待审核</button></div><div class="static-table" id="taskList">
+        <div class="static-row" data-status="待审核"><div class="thumb thumb-1"><span>04:26</span></div><div><strong>Contactor Selection Guide: 3 Specs That Matter</strong><small>产品科普 · Lynn</small></div><span class="status status-待审核">待审核</span><span>8月27日</span></div>
+        <div class="static-row" data-status="制作中"><div class="thumb thumb-2"><span>06:10</span></div><div><strong>Inside a DC Contactor: How Arc Control Works</strong><small>技术拆解 · Eric</small></div><span class="status status-制作中">制作中</span><span>8月29日</span></div>
+        <div class="static-row" data-status="已排期"><div class="thumb thumb-3"><span>02:48</span></div><div><strong>HIITIO at RE+ 2026 — What We’re Bringing</strong><small>品牌动态 · Mia</small></div><span class="status status-已排期">已排期</span><span>9月1日</span></div>
+        <div class="static-row" data-status="草稿"><div class="thumb thumb-4"><span>05:35</span></div><div><strong>EV Charging Safety: Common Installation Mistakes</strong><small>应用场景 · Lynn</small></div><span class="status status-草稿">草稿</span><span>待排期</span></div>
+      </div></article></section>
+      <section class="view" id="publish"><section class="publish-layout"><article class="panel calendar-panel"><div class="panel-head"><div><h3>9月发布排期</h3><p>海外账号默认 UTC+8 10:00</p></div><button class="notify">导出排期</button></div><div class="week-head"><span>周一</span><span>周二</span><span>周三</span><span>周四</span><span>周五</span><span>周六</span><span>周日</span></div><div class="calendar-grid" id="calendar"></div></article><aside class="panel preflight"><h3>发布前检查</h3><p>正式发布必须全部通过</p><label><input type="checkbox" checked><span>标题与描述已审核</span></label><label><input type="checkbox" checked><span>缩略图尺寸符合要求</span></label><label><input type="checkbox"><span>版权与产品声明已确认</span></label><label><input type="checkbox"><span>人工最终确认</span></label><label><input type="checkbox"><span>YouTube 回执已记录</span></label><button class="notify">运行预检</button><small>API 权限与幂等发布机制：待接入</small></aside></section></section>
+      <section class="view" id="analytics"><section class="analytics-layout"><div class="metric-row data-metrics"><div><span>频道观看</span><strong>32.8k</strong><small class="up">↑ 16.2%</small></div><div><span>展示点击率</span><strong>5.7<em>%</em></strong><small class="up">↑ 0.8%</small></div><div><span>平均观看时长</span><strong>3:42</strong><small>演示数据</small></div><div><span>订阅转化率</span><strong>1.9<em>%</em></strong><small class="up">↑ 0.3%</small></div></div><article class="panel insight-panel"><div class="panel-head"><div><h3>内容表现排行</h3><p>最近 28 天 · 演示数据</p></div></div><div class="rank-row"><b>01</b><div class="thumb thumb-1"></div><div><strong>Contactor Selection Guide: 3 Specs That Matter</strong><span>12,486 次观看 · 48.2% 观看率</span></div><em class="up">+24%</em></div><div class="rank-row"><b>02</b><div class="thumb thumb-2"></div><div><strong>Inside a DC Contactor: How Arc Control Works</strong><span>8,974 次观看 · 44.7% 观看率</span></div><em class="up">+18%</em></div><div class="rank-row"><b>03</b><div class="thumb thumb-3"></div><div><strong>HIITIO at RE+ 2026 — What We’re Bringing</strong><span>6,325 次观看 · 39.1% 观看率</span></div><em class="up">+11%</em></div></article></section></section>
+      <p class="site-foot">和为 YouTube 社媒工作台 · 公开演示版 · 数据非真实生产数据</p>
+    </div>
+  </section>
+</main>
+<div class="modal-backdrop" id="modal" hidden><section class="composer"><div class="composer-head"><div><span>新建</span><h2>视频任务</h2></div><button id="closeModal">×</button></div><label>视频主题<input placeholder="例如：高压直流接触器如何选型"></label><div class="form-grid"><label>内容类型<select><option>产品科普</option><option>技术拆解</option><option>应用场景</option></select></label><label>负责人<select><option>Lynn</option><option>Eric</option><option>Mia</option></select></label></div><label>核心目标<textarea rows="4" placeholder="这条视频希望观众看完后知道什么？"></textarea></label><div class="composer-actions"><button id="cancelModal">取消</button><button id="saveTask">保存草稿</button></div></section></div>
+<div class="toast" id="toast" hidden></div>
+<script>
+  const titles={overview:'早上好，今天先推进这 3 件事',content:'内容',publish:'发布',analytics:'数据'};
+  function showTab(id){document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===id));document.querySelectorAll('.side-nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));document.querySelector('#pageTitle').textContent=titles[id];window.scrollTo({top:0,behavior:'smooth'})}
+  document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>showTab(b.dataset.jump));
+  const bars=[38,46,42,61,58,76,69,86];document.querySelector('#smallBars').innerHTML=bars.map((h,i)=>`<div class="bar-wrap"><div class="bar" style="height:${h}%"></div><span>W${i+1}</span></div>`).join('');
+  document.querySelector('#calendar').innerHTML=Array.from({length:14},(_,i)=>`<div class="${i===3||i===6?'empty-slot':''}"><span>${i+1}</span>${i===0?'<b>RE+ 展会预告</b>':i===2?'<b>接触器拆解</b>':i===8?'<b>安装误区</b>':i===3||i===6?'<button class="addSlot">＋ 待安排</button>':''}</div>`).join('');
+  const toast=document.querySelector('#toast');function notify(msg){toast.textContent=msg;toast.hidden=false;clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>toast.hidden=true,2400)}document.querySelectorAll('.notify').forEach(b=>b.onclick=()=>notify('演示操作已记录，真实接口待接入'));document.querySelector('#refresh').onclick=()=>notify('演示数据已刷新');
+  let connected=false;document.querySelector('#connect').onclick=e=>{connected=!connected;e.target.textContent=connected?'断开演示':'连接频道';document.querySelector('.connection').innerHTML=`<span class="connection-dot"></span>${connected?'演示账号已连接':'YouTube 账号待接入'}`;notify(connected?'已切换为演示连接':'已断开演示连接')};
+  let filtered=false;document.querySelector('#filterBtn').onclick=e=>{filtered=!filtered;document.querySelectorAll('.static-row').forEach(r=>r.style.display=!filtered||r.dataset.status==='待审核'?'grid':'none');e.target.textContent=filtered?'查看全部':'仅看待审核'};
+  const modal=document.querySelector('#modal');function setModal(open){modal.hidden=!open}document.querySelector('#newTask').onclick=()=>setModal(true);document.querySelectorAll('.addSlot').forEach(b=>b.onclick=()=>setModal(true));document.querySelector('#closeModal').onclick=()=>setModal(false);document.querySelector('#cancelModal').onclick=()=>setModal(false);modal.onclick=e=>{if(e.target===modal)setModal(false)};document.querySelector('#saveTask').onclick=()=>{setModal(false);notify('视频任务已保存为草稿')};
+</script>
+</body>
+</html>
