@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 
-type Tab = "总览" | "内容" | "发布" | "数据";
+type Tab = "总览" | "爆款工厂" | "内容" | "发布" | "数据";
 type Status = "待审核" | "制作中" | "已排期" | "草稿";
 
 const videos = [
@@ -14,7 +14,7 @@ const videos = [
 
 const weeklyBars = [38, 46, 42, 61, 58, 76, 69, 86];
 
-const tabs: Tab[] = ["总览", "内容", "发布", "数据"];
+const tabs: Tab[] = ["总览", "爆款工厂", "内容", "发布", "数据"];
 
 function StatusPill({ status }: { status: Status }) {
   return <span className={`status status-${status}`}>{status}</span>;
@@ -31,6 +31,8 @@ export default function Home() {
   const [toast, setToast] = useState("");
   const [filter, setFilter] = useState("全部");
   const [approved, setApproved] = useState<string[]>([]);
+  const [pipelineStep, setPipelineStep] = useState(1);
+  const [category, setCategory] = useState("高压直流接触器");
   const filteredVideos = useMemo(() => filter === "全部" ? videos : videos.filter((video) => video.status === filter), [filter]);
 
   const notify = (message: string) => {
@@ -54,7 +56,7 @@ export default function Home() {
         <nav className="side-nav" aria-label="主导航">
           {tabs.map((item, index) => (
             <button key={item} className={tab === item ? "active" : ""} onClick={() => setTab(item)}>
-              <MiniIcon>{["⌂", "▤", "▷", "⌁"][index]}</MiniIcon>{item}
+              <MiniIcon>{["⌂", "✦", "▤", "▷", "⌁"][index]}</MiniIcon>{item}
               {item === "发布" && <span className="nav-count">2</span>}
             </button>
           ))}
@@ -137,6 +139,31 @@ export default function Home() {
                 <div className="table-head"><span>视频</span><span>负责人</span><span>状态</span><span>计划时间</span><span>操作</span></div>
                 {filteredVideos.map((video, index) => <div className="table-row" key={video.title}><div className="table-video"><div className={`thumb thumb-${index + 1}`}><span>{video.duration}</span></div><div><strong>{video.title}</strong><span>{video.type}</span></div></div><span>{video.owner}</span><StatusPill status={approved.includes(video.title) ? "已排期" : video.status} /><span>{video.date}</span><div className="row-actions">{video.status === "待审核" && !approved.includes(video.title) ? <button onClick={() => approve(video.title)}>通过</button> : <button onClick={() => notify("任务详情将在正式版接入")}>查看</button>}</div></div>)}
               </div>
+            </section>
+          )}
+
+          {tab === "爆款工厂" && (
+            <section className="factory-shell">
+              <div className="factory-intro">
+                <div><span className="factory-kicker">CONTENT INTELLIGENCE</span><h2>从产品类目到视频成片</h2><p>采集公开热门内容，按话题聚类并学习结构，生成原创脚本与视频任务。</p></div>
+                <div className="factory-gate"><b>安全规则</b><span>只提炼结构和选题，不复制竞品素材、文案、Logo 或水印。</span></div>
+              </div>
+              <div className="pipeline-steps">
+                {["输入类目","采集热门视频","话题与脚本学习","输出视频"].map((label,i)=><button key={label} className={pipelineStep===i+1?"current":pipelineStep>i+1?"done":""} onClick={()=>setPipelineStep(i+1)}><i>{pipelineStep>i+1?"✓":i+1}</i><span>{label}</span></button>)}
+              </div>
+              {pipelineStep===1 && <article className="factory-stage input-stage"><div><span className="stage-no">01 / DEFINE</span><h3>先告诉我，要研究哪个产品类目？</h3><p>系统将围绕产品、应用场景和采购问题扩展关键词。</p></div><div className="category-box"><label>产品类目<input value={category} onChange={e=>setCategory(e.target.value)} placeholder="例如：高压直流接触器" /></label><div className="quick-tags">{["储能熔断器","EV 充电接触器","HVAC 接触器","光伏直流开关"].map(t=><button key={t} onClick={()=>setCategory(t)}>{t}</button>)}</div><label>目标市场<select><option>北美 · 英语</option><option>欧洲 · 英语</option><option>全球 · 英语</option></select></label><button className="factory-primary" disabled={!category.trim()} onClick={()=>setPipelineStep(2)}>开始采集热门视频 →</button><small>YouTube Data API / 搜索源：待接入；当前展示流程演示数据。</small></div></article>}
+              {pipelineStep===2 && <article className="factory-stage"><div className="stage-head"><div><span className="stage-no">02 / DISCOVER</span><h3>“{category}” 热门视频池</h3><p>依据观看量、互动率与增长速度筛选，不以主观判断代替指标。</p></div><button className="factory-primary" onClick={()=>setPipelineStep(3)}>完成分类 →</button></div><div className="source-grid">{[
+                ["How DC Contactors Handle 1000V","Engineering Explained","482K","高增长"],
+                ["3 Contactor Mistakes That Kill EV Chargers","EV Tech Lab","219K","高互动"],
+                ["Inside a Hermetically Sealed Contactor","Power Systems Pro","164K","持续热门"],
+                ["DC Contactor Selection in 5 Minutes","Electro Academy","97K","监测中"]
+              ].map((v,i)=><div className="source-card" key={v[0]}><div className={`source-thumb thumb-${i+1}`}><span>0{4+i}:2{i}</span><b>演示样本</b></div><div><strong>{v[0]}</strong><span>{v[1]}</span><div><em>{v[2]} views</em><mark>{v[3]}</mark></div></div></div>)}</div><div className="source-note"><b>数据完整性</b><span>正式采集需记录视频 URL、频道、发布时间、采集时间和公开指标；登录后或私有数据不采集。</span></div></article>}
+              {pipelineStep===3 && <article className="factory-stage"><div className="stage-head"><div><span className="stage-no">03 / LEARN</span><h3>3 个高潜话题簇</h3><p>学习的是开场、信息顺序和节奏；生成内容必须保持原创。</p></div><button className="factory-primary" onClick={()=>setPipelineStep(4)}>生成视频方案 →</button></div><div className="topic-grid">{[
+                ["选型避坑","采购决策","数字警告开场","问题 → 后果 → 3项检查 → CTA","8 条参考"],
+                ["内部结构拆解","工程教育","剖面悬念开场","疑问 → 拆解 → 原理 → 应用","6 条参考"],
+                ["应用失效案例","维修诊断","故障现场开场","症状 → 原因 → 修复 → 预防","5 条参考"]
+              ].map((t,i)=><div className="topic-card" key={t[0]}><div className="topic-index">0{i+1}</div><span>{t[1]}</span><h4>{t[0]}</h4><dl><div><dt>高频开场</dt><dd>{t[2]}</dd></div><div><dt>脚本结构</dt><dd>{t[3]}</dd></div></dl><small>{t[4]} · 置信度 {91-i*4}%</small><button onClick={()=>notify(`已选中“${t[0]}”作为生成方向`)}>选择话题</button></div>)}</div></article>}
+              {pipelineStep===4 && <article className="factory-stage output-stage"><div className="output-main"><span className="stage-no">04 / PRODUCE</span><div className="output-status"><i>脚本草案</i><b>等待人工确认</b></div><h3>3 Specs That Decide Whether a DC Contactor Survives</h3><p className="script-lead">“A contactor rated for the voltage can still fail in weeks. Before you specify one, check these three numbers.”</p><div className="script-beats"><div><b>00:00—00:05</b><span>故障接触器特写，提出反直觉问题</span></div><div><b>00:05—00:25</b><span>解释额定电压与实际开断能力的区别</span></div><div><b>00:25—00:48</b><span>逐项讲解负载类型、短路能力、线圈控制</span></div><div><b>00:48—00:60</b><span>给出选型检查清单与保守 CTA</span></div></div></div><aside className="output-panel"><h4>视频输出设置</h4><label>画幅<select><option>YouTube 16:9 · 1920×1080</option><option>Shorts 9:16 · 1080×1920</option></select></label><label>语言<select><option>English · North America</option><option>中文</option></select></label><label>配音<span>MiniMax T2A v2 · 最终版</span></label><label>预计时长<span>60 秒</span></label><button className="factory-primary" onClick={()=>notify("已创建视频生成任务，等待人工确认")}>确认脚本并创建视频任务</button><button className="factory-secondary" onClick={()=>setPipelineStep(3)}>返回修改话题</button><small>生成前需预算审批；成片需通过清晰度、安全与人工终审，不能自动进入发布队列。</small></aside></article>}
             </section>
           )}
 
