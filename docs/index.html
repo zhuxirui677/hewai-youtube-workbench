@@ -8,10 +8,7 @@
   <link rel="icon" href="favicon.svg">
   <link rel="stylesheet" href="style.css">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <style>
-    .view{display:none}.view.active{display:block}.static-table{padding:3px 20px}.static-row{display:grid;grid-template-columns:72px 1fr 72px 80px;gap:12px;align-items:center;padding:14px 0;border-bottom:1px solid #eef0ed}.static-row:last-child{border-bottom:0}.static-row .thumb{width:72px}.static-row strong,.static-row small{display:block}.static-row strong{font-size:11px}.static-row small{font-size:9px;color:#929591;margin-top:5px}.chart-block{padding:25px}.large-bars{height:250px}.large-bars .bar-wrap span{font-size:9px}.offline-badge{background:#fff3dc;color:#9b5c0b;border-radius:20px;padding:5px 9px;font-size:9px}.modal-backdrop[hidden]{display:none}.nav-title{display:inline}.site-foot{font-size:9px;color:#999;text-align:center;padding:28px 0 0}
-    @media(max-width:700px){.nav-title{display:none}.static-row{grid-template-columns:58px 1fr auto}.static-row>span:last-child{display:none}}
-  </style>
+  <style>.view{display:none}.view.active{display:block}.static-table{padding:3px 20px}.static-row{display:grid;grid-template-columns:72px 1fr 72px 80px;gap:12px;align-items:center;padding:14px 0;border-bottom:1px solid #eef0ed}.static-row:last-child{border-bottom:0}.static-row .thumb{width:72px}.static-row strong,.static-row small{display:block}.static-row strong{font-size:11px}.static-row small{font-size:9px;color:#929591;margin-top:5px}.chart-block{padding:25px}.large-bars{height:250px}.large-bars .bar-wrap span{font-size:9px}.offline-badge{background:#fff3dc;color:#9b5c0b;border-radius:20px;padding:5px 9px;font-size:9px}.modal-backdrop[hidden]{display:none}.nav-title{display:inline}.site-foot{font-size:9px;color:#999;text-align:center;padding:28px 0 0}@media(max-width:700px){.nav-title{display:none}.static-row{grid-template-columns:58px 1fr auto}.static-row>span:last-child{display:none}}</style>
 </head>
 <body>
 <main class="app-shell">
@@ -20,6 +17,7 @@
     <nav class="side-nav" aria-label="主导航">
       <button class="active" data-tab="overview"><span class="mini-icon">⌂</span><span class="nav-title">总览</span></button>
       <button data-tab="factory"><span class="mini-icon">✦</span><span class="nav-title">爆款工厂</span></button>
+      <button data-tab="studio"><span class="mini-icon">AI</span><span class="nav-title">AI 制片</span></button>
       <button data-tab="content"><span class="mini-icon">▤</span><span class="nav-title">内容</span></button>
       <button data-tab="publish"><span class="mini-icon">▷</span><span class="nav-title">发布</span><span class="nav-count">2</span></button>
       <button data-tab="analytics"><span class="mini-icon">⌁</span><span class="nav-title">数据</span></button>
@@ -33,6 +31,107 @@
       <div class="page-heading"><div><p class="date-line">2026年8月25日 · 周二</p><h1 id="pageTitle">早上好，今天先推进这 3 件事</h1></div><button class="ghost-button" id="refresh">↻ 刷新</button></div>
       <section class="view active" id="overview">
         <section class="connect-banner" id="connectBanner"><div class="youtube-badge" id="channelAvatar"><span>▶</span></div><div class="connect-copy"><strong id="channelName">连接 Holdwell YouTube 频道</strong><p id="channelMeta">官方 OAuth · YouTube 与 Analytics 只读权限，不获取账号密码。</p></div><button id="connect">使用 Google 连接</button></section>
+        <div class="ai-studio-grid" id="aiStudio">
+          <section class="studio-intro">
+            <div><span>AI PRODUCTION</span><h2>从脚本到视频，一处完成</h2><p>脚本使用百炼大语言模型，成片交给独立视频模型；配置只保存在当前浏览器。</p></div>
+            <ol><li><b>01</b>连接模型</li><li><b>02</b>生成脚本</li><li><b>03</b>提交视频</li></ol>
+          </section>
+        <section class="provider-panel provider-panel-ai" aria-labelledby="providerTitle">
+          <div class="provider-panel-head">
+            <div>
+              <h3 id="providerTitle">AI 接入</h3>
+              <p>把阿里百炼、OpenAI 兼容接口或 DashScope 填进来，工作台就能直接做脚本生成、分类总结和连通测试。</p>
+            </div>
+            <span class="provider-status" id="providerStatus">未配置</span>
+          </div>
+          <div class="provider-grid">
+            <label>提供商
+              <select id="providerKind">
+                <option value="openai-compatible">OpenAI 兼容</option>
+                <option value="dashscope">DashScope</option>
+              </select>
+            </label>
+            <label>API Host
+              <input id="providerBaseUrl" placeholder="https://.../compatible-mode/v1">
+            </label>
+            <label>模型名
+              <input id="providerModel" placeholder="qwen3.7-plus">
+            </label>
+            <label>API Key
+              <input id="providerApiKey" type="password" placeholder="sk-...">
+            </label>
+          </div>
+          <div class="provider-row">
+            <label>测试提示词
+              <input id="providerPrompt" value="请用一句话总结：这个工作台应该优先接入什么能力？">
+            </label>
+            <div class="provider-actions">
+              <button type="button" data-base="https://llm-lolr1pwbnbwmup6z.cn-beijing.maas.aliyuncs.com/compatible-mode/v1">填充兼容地址</button>
+              <button type="button" data-base="https://llm-lolr1pwbnbwmup6z.cn-beijing.maas.aliyuncs.com/api/v1">填充 DashScope</button>
+              <button type="button" class="primary" id="providerSave">保存配置</button>
+              <button type="button" id="providerTest" class="primary">连通测试</button>
+              <button type="button" id="providerGenerate">生成脚本草案</button>
+              <button type="button" class="danger" id="providerClear">清空</button>
+            </div>
+          </div>
+          <div class="provider-output" id="providerOutput"><strong>状态</strong>还没有配置模型。先填 API Host、模型名和 Key，再做一次测试。</div>
+          <p class="provider-hint">说明：API Key 只保存在本地浏览器，不会写进仓库。若要正式多人使用，后续可以再把这层改成 Worker 代理，由服务端保存密钥。</p>
+        </section>
+        <section class="provider-panel provider-panel-video" aria-labelledby="videoEngineTitle">
+          <div class="provider-panel-head">
+            <div>
+              <h3 id="videoEngineTitle">视频生成引擎</h3>
+              <p>脚本使用 qwen3.7-plus；视频由 wan3.0-video / wan3.0-video-prime 独立生成。</p>
+            </div>
+            <span class="provider-status" id="videoStatus">未配置</span>
+          </div>
+          <div class="provider-grid">
+            <label>视频模型
+              <select id="videoModel">
+                <option value="wan3.0-video-prime">wan3.0-video-prime</option>
+                <option value="wan3.0-video">wan3.0-video</option>
+                <option value="happyhorse-1.1-t2v">happyhorse-1.1-t2v</option>
+                <option value="wan2.7-t2v-2026-06-12">wan2.7-t2v-2026-06-12</option>
+                <option value="happyhorse-1.1-i2v">happyhorse-1.1-i2v</option>
+                <option value="wan2.7-i2v-2026-04-25">wan2.7-i2v-2026-04-25</option>
+              </select>
+            </label>
+            <label>模式
+              <select id="videoMode">
+                <option value="t2v">文生视频</option>
+                <option value="i2v">图生视频</option>
+              </select>
+            </label>
+            <label>时长（秒）
+              <input id="videoDuration" value="30" inputmode="numeric">
+            </label>
+            <label>画幅
+              <select id="videoRatio">
+                <option>16:9</option>
+                <option>9:16</option>
+                <option>1:1</option>
+                <option>4:3</option>
+                <option>3:4</option>
+              </select>
+            </label>
+          </div>
+          <div class="provider-row">
+            <label>视频提示词
+              <input id="videoPrompt" value="一条工程教育风格的 YouTube 产品视频，镜头稳重，强调真实质感和清晰结构。">
+            </label>
+            <label>参考图 URL（图生视频时使用）
+              <input id="videoImageUrl" placeholder="https://.../reference.jpg">
+            </label>
+          </div>
+          <div class="provider-actions">
+            <button type="button" class="primary" id="videoGenerate">生成视频任务</button>
+            <button type="button" id="videoPoll">查询任务状态</button>
+            <button type="button" class="danger" id="videoClear">清空</button>
+          </div>
+          <div class="provider-output" id="videoOutput"><strong>状态</strong>还没有生成视频任务。先选模型和模式，再点“生成视频任务”。</div>
+          <p class="provider-hint">说明：百炼视频生成通常是异步任务，先返回 `task_id`，再轮询拿 `video_url`。有些模型默认带水印，`watermark` 可按官方模型能力配置。</p>
+        </section>
+        </div>
         <section class="priority-grid">
           <article class="priority-card red"><div class="priority-top"><span class="mini-icon">✓</span><span>内容审核</span><b>01</b></div><h2>1 条视频待审核</h2><p>产品选型指南已完成剪辑与字幕</p><button data-jump="content">立即审核 <span>→</span></button></article>
           <article class="priority-card amber"><div class="priority-top"><span class="mini-icon">◷</span><span>本周排期</span><b>02</b></div><h2>2 个档期未填充</h2><p>周四、周日仍缺少发布内容</p><button data-jump="publish">安排内容 <span>→</span></button></article>
@@ -53,9 +152,9 @@
           <div class="factory-intro"><div><span class="factory-kicker">CONTENT INTELLIGENCE</span><h2>从产品类目到视频成片</h2><p>采集公开热门内容，按话题聚类并学习结构，生成原创脚本与视频任务。</p></div><div class="factory-gate"><b>安全规则</b><span>只提炼结构和选题，不复制竞品素材、文案、Logo 或水印。</span></div></div>
           <div class="pipeline-steps" id="pipelineSteps"><button class="current" data-step="1"><i>1</i><span>输入类目</span></button><button data-step="2"><i>2</i><span>采集热门视频</span></button><button data-step="3"><i>3</i><span>话题与脚本学习</span></button><button data-step="4"><i>4</i><span>输出视频</span></button></div>
           <article class="factory-stage input-stage pipeline-stage" data-stage="1"><div><span class="stage-no">01 / DEFINE</span><h3>先告诉我，要研究哪个产品类目？</h3><p>系统将围绕产品、应用场景和采购问题扩展关键词。</p></div><div class="category-box"><label>产品类目<input id="categoryInput" value="高压直流接触器" placeholder="例如：高压直流接触器"></label><div class="quick-tags"><button>储能熔断器</button><button>EV 充电接触器</button><button>HVAC 接触器</button><button>光伏直流开关</button></div><label>目标市场<select><option>北美 · 英语</option><option>欧洲 · 英语</option><option>全球 · 英语</option></select></label><button class="factory-primary next-step" data-next="2">开始采集热门视频 →</button><small>YouTube Data API / 搜索源：待接入；当前展示流程演示数据。</small></div></article>
-          <article class="factory-stage pipeline-stage" data-stage="2" hidden><div class="stage-head"><div><span class="stage-no">02 / DISCOVER</span><h3><span class="categoryEcho">高压直流接触器</span> 热门视频池</h3><p>依据观看量、互动率与增长速度筛选，不以主观判断代替指标。</p></div><button class="factory-primary next-step" data-next="3">完成分类 →</button></div><div class="source-grid"><div class="source-card"><div class="source-thumb thumb-1"><span>04:21</span><b>演示样本</b></div><div><strong>How DC Contactors Handle 1000V</strong><span>Engineering Explained</span><div><em>482K views</em><mark>高增长</mark></div></div></div><div class="source-card"><div class="source-thumb thumb-2"><span>05:22</span><b>演示样本</b></div><div><strong>3 Contactor Mistakes That Kill EV Chargers</strong><span>EV Tech Lab</span><div><em>219K views</em><mark>高互动</mark></div></div></div><div class="source-card"><div class="source-thumb thumb-3"><span>06:23</span><b>演示样本</b></div><div><strong>Inside a Hermetically Sealed Contactor</strong><span>Power Systems Pro</span><div><em>164K views</em><mark>持续热门</mark></div></div></div><div class="source-card"><div class="source-thumb thumb-4"><span>07:24</span><b>演示样本</b></div><div><strong>DC Contactor Selection in 5 Minutes</strong><span>Electro Academy</span><div><em>97K views</em><mark>监测中</mark></div></div></div></div><div class="source-note"><b>数据完整性</b><span>正式采集需记录 URL、频道、发布时间、采集时间和公开指标；不采集登录后或私有数据。</span></div></article>
-          <article class="factory-stage pipeline-stage" data-stage="3" hidden><div class="stage-head"><div><span class="stage-no">03 / LEARN</span><h3>3 个高潜话题簇</h3><p>学习开场、信息顺序和节奏；生成内容必须保持原创。</p></div><button class="factory-primary next-step" data-next="4">生成视频方案 →</button></div><div class="topic-grid"><div class="topic-card"><div class="topic-index">01</div><span>采购决策</span><h4>选型避坑</h4><dl><div><dt>高频开场</dt><dd>数字警告开场</dd></div><div><dt>脚本结构</dt><dd>问题 → 后果 → 3项检查 → CTA</dd></div></dl><small>8 条参考 · 置信度 91%</small><button class="notify">选择话题</button></div><div class="topic-card"><div class="topic-index">02</div><span>工程教育</span><h4>内部结构拆解</h4><dl><div><dt>高频开场</dt><dd>剖面悬念开场</dd></div><div><dt>脚本结构</dt><dd>疑问 → 拆解 → 原理 → 应用</dd></div></dl><small>6 条参考 · 置信度 87%</small><button class="notify">选择话题</button></div><div class="topic-card"><div class="topic-index">03</div><span>维修诊断</span><h4>应用失效案例</h4><dl><div><dt>高频开场</dt><dd>故障现场开场</dd></div><div><dt>脚本结构</dt><dd>症状 → 原因 → 修复 → 预防</dd></div></dl><small>5 条参考 · 置信度 83%</small><button class="notify">选择话题</button></div></div></article>
-          <article class="factory-stage output-stage pipeline-stage" data-stage="4" hidden><div class="output-main"><span class="stage-no">04 / PRODUCE</span><div class="output-status"><i>脚本草案</i><b>等待人工确认</b></div><h3>3 Specs That Decide Whether a DC Contactor Survives</h3><p class="script-lead">“A contactor rated for the voltage can still fail in weeks. Before you specify one, check these three numbers.”</p><div class="script-beats"><div><b>00:00—00:05</b><span>故障接触器特写，提出反直觉问题</span></div><div><b>00:05—00:25</b><span>解释额定电压与实际开断能力的区别</span></div><div><b>00:25—00:48</b><span>逐项讲解负载类型、短路能力、线圈控制</span></div><div><b>00:48—00:60</b><span>给出选型检查清单与保守 CTA</span></div></div></div><aside class="output-panel"><h4>视频输出设置</h4><label>画幅<select><option>YouTube 16:9 · 1920×1080</option><option>Shorts 9:16 · 1080×1920</option></select></label><label>语言<select><option>English · North America</option><option>中文</option></select></label><label>配音<span>MiniMax T2A v2 · 最终版</span></label><label>预计时长<span>60 秒</span></label><button class="factory-primary notify">确认脚本并创建视频任务</button><button class="factory-secondary prev-step" data-prev="3">返回修改话题</button><small>生成前需预算审批；成片需通过清晰度、安全与人工终审，不能自动进入发布队列。</small></aside></article>
+          <article class="factory-stage pipeline-stage" data-stage="2" hidden><div class="stage-head"><div><span class="stage-no">02 / DISCOVER</span><h3><span class="categoryEcho">高压直流接触器</span> 热门视频池</h3><p>依据观看量、互动率与增长速度筛选，不以主观判断代替指标。</p></div><button class="factory-primary next-step" data-next="3" id="factoryDiscoverBtn">完成分类 →</button></div><div class="source-grid" id="sourceGrid"></div><div class="source-note"><b>数据完整性</b><span>正式采集需记录 URL、频道、发布时间、采集时间和公开指标；不采集登录后或私有数据。</span></div></article>
+          <article class="factory-stage pipeline-stage" data-stage="3" hidden><div class="stage-head"><div><span class="stage-no">03 / LEARN</span><h3>3 个高潜话题簇</h3><p>学习开场、信息顺序和节奏；生成内容必须保持原创。</p><button class="factory-primary" id="factoryLearnBtn">生成话题簇 →</button></div><button class="factory-primary next-step" data-next="4">生成视频方案 →</button></div><div class="topic-grid" id="topicGrid"></div></article>
+          <article class="factory-stage output-stage pipeline-stage" data-stage="4" hidden><div class="output-main"><span class="stage-no">04 / PRODUCE</span><div class="output-status"><i>脚本草案</i><b id="draftStatus">等待人工确认</b></div><h3 id="draftTitle">3 Specs That Decide Whether a DC Contactor Survives</h3><p class="script-lead" id="draftLead">“A contactor rated for the voltage can still fail in weeks. Before you specify one, check these three numbers.”</p><div class="script-beats" id="draftBeats"></div></div><aside class="output-panel"><h4>视频输出设置</h4><label>画幅<select id="videoAspect"><option>YouTube 16:9 · 1920×1080</option><option>Shorts 9:16 · 1080×1920</option></select></label><label>语言<select id="videoLanguage"><option>English · North America</option><option>中文</option></select></label><label>配音<span id="voiceLabel">MiniMax T2A v2 · 最终版</span></label><label>预计时长<span id="durationLabel">60 秒</span></label><button class="factory-primary notify" id="createVideoTask">确认脚本并创建视频任务</button><button class="factory-secondary prev-step" data-prev="3">返回修改话题</button><small>生成前需预算审批；成片需通过清晰度、安全与人工终审，不能自动进入发布队列。</small></aside></article>
         </section>
       </section>
       <section class="view" id="content"><article class="panel content-panel"><div class="panel-head"><div><h3>内容任务</h3><p>管理脚本、剪辑、审核与成片状态</p></div><button id="filterBtn">仅看待审核</button></div><div class="static-table" id="taskList">
@@ -77,17 +176,66 @@
   const EXPECTED_CHANNEL_ID='UCaVoK91SuVg9Nn0QLsF-A5Q';
   const YOUTUBE_SCOPES='https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics.readonly';
   let youtubeToken=''; let tokenClient=null; let connectedChannel=null;
-  const titles={overview:'早上好，今天先推进这 3 件事',factory:'爆款视频工厂',content:'内容',publish:'发布',analytics:'数据'};
-  function showTab(id){document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===id));document.querySelectorAll('.side-nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));document.querySelector('#pageTitle').textContent=titles[id];window.scrollTo({top:0,behavior:'smooth'})}
+  const AI_STORAGE_KEY='hewai.ai.provider.v1';
+  const providerDefaults={kind:'openai-compatible',baseUrl:'https://llm-lolr1pwbnbwmup6z.cn-beijing.maas.aliyuncs.com/compatible-mode/v1',model:'',apiKey:'',prompt:'请用一句话总结：这个工作台应该优先接入什么能力？'};
+  const titles={overview:'早上好，今天先推进这 3 件事',factory:'爆款视频工厂',studio:'AI 制片工作区',content:'内容',publish:'发布',analytics:'数据'};
+  const providerState={...providerDefaults};
+  function showTab(id){const isStudio=id==='studio';document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===(isStudio?'overview':id)));document.querySelector('#overview').classList.toggle('studio-mode',isStudio);document.querySelectorAll('.side-nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));document.querySelector('#pageTitle').textContent=titles[id];window.scrollTo({top:0,behavior:'smooth'})}
   document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>showTab(b.dataset.jump));
   const bars=[38,46,42,61,58,76,69,86];document.querySelector('#smallBars').innerHTML=bars.map((h,i)=>`<div class="bar-wrap"><div class="bar" style="height:${h}%"></div><span>W${i+1}</span></div>`).join('');
   document.querySelector('#calendar').innerHTML=Array.from({length:14},(_,i)=>`<div class="${i===3||i===6?'empty-slot':''}"><span>${i+1}</span>${i===0?'<b>RE+ 展会预告</b>':i===2?'<b>接触器拆解</b>':i===8?'<b>安装误区</b>':i===3||i===6?'<button class="addSlot">＋ 待安排</button>':''}</div>`).join('');
   const toast=document.querySelector('#toast');function notify(msg){toast.textContent=msg;toast.hidden=false;clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>toast.hidden=true,2400)}document.querySelectorAll('.notify').forEach(b=>b.onclick=()=>notify('演示操作已记录，真实接口待接入'));document.querySelector('#refresh').onclick=()=>notify('演示数据已刷新');
+  const providerNodes={kind:document.querySelector('#providerKind'),baseUrl:document.querySelector('#providerBaseUrl'),model:document.querySelector('#providerModel'),apiKey:document.querySelector('#providerApiKey'),prompt:document.querySelector('#providerPrompt'),status:document.querySelector('#providerStatus'),output:document.querySelector('#providerOutput')};
+  const factoryNodes={category:document.querySelector('#categoryInput'),sourceGrid:document.querySelector('#sourceGrid'),topicGrid:document.querySelector('#topicGrid'),draftStatus:document.querySelector('#draftStatus'),draftTitle:document.querySelector('#draftTitle'),draftLead:document.querySelector('#draftLead'),draftBeats:document.querySelector('#draftBeats'),duration:document.querySelector('#durationLabel'),aspect:document.querySelector('#videoAspect'),language:document.querySelector('#videoLanguage'),voice:document.querySelector('#voiceLabel')};
+  const videoNodes={model:document.querySelector('#videoModel'),mode:document.querySelector('#videoMode'),duration:document.querySelector('#videoDuration'),ratio:document.querySelector('#videoRatio'),prompt:document.querySelector('#videoPrompt'),imageUrl:document.querySelector('#videoImageUrl'),status:document.querySelector('#videoStatus'),output:document.querySelector('#videoOutput')};
+  function renderProviderState(){providerNodes.kind.value=providerState.kind;providerNodes.baseUrl.value=providerState.baseUrl;providerNodes.model.value=providerState.model;providerNodes.apiKey.value=providerState.apiKey;providerNodes.prompt.value=providerState.prompt;const ready=Boolean(providerState.baseUrl&&providerState.model&&providerState.apiKey);providerNodes.status.textContent=ready?'已配置':'未配置';providerNodes.status.classList.toggle('is-ready',ready);providerNodes.output.innerHTML=`<strong>状态</strong>${ready?`已准备好：${escapeHtml(providerState.kind)} · ${escapeHtml(providerState.model)} · ${escapeHtml(providerState.baseUrl)}`:'还没有配置模型。先填 API Host、模型名和 Key，再做一次测试。'}`;}
+  function escapeHtml(value){return String(value).replace(/[&<>"']/g,(char)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));}
+  function readProviderState(){try{const raw=localStorage.getItem(AI_STORAGE_KEY);if(!raw)return;const parsed=JSON.parse(raw);Object.assign(providerState,providerDefaults,parsed);}catch{}}
+  function saveProviderState(){providerState.kind=providerNodes.kind.value;providerState.baseUrl=providerNodes.baseUrl.value.trim();providerState.model=providerNodes.model.value.trim();providerState.apiKey=providerNodes.apiKey.value.trim();providerState.prompt=providerNodes.prompt.value.trim()||providerDefaults.prompt;localStorage.setItem(AI_STORAGE_KEY,JSON.stringify(providerState));renderProviderState();notify('AI 配置已保存到本地浏览器');}
+  function renderSourceCards(items){factoryNodes.sourceGrid.innerHTML=items.map((item,index)=>`<div class="source-card"><div class="source-thumb thumb-${(index%4)+1}"><span>${escapeHtml(item.duration)}</span><b>${escapeHtml(item.tag)}</b></div><div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.channel)}</span><div><em>${escapeHtml(item.views)} views</em><mark>${escapeHtml(item.trend)}</mark></div></div></div>`).join('');}
+  function renderTopicCards(items){factoryNodes.topicGrid.innerHTML=items.map((item,index)=>`<div class="topic-card"><div class="topic-index">${String(index+1).padStart(2,'0')}</div><span>${escapeHtml(item.bucket)}</span><h4>${escapeHtml(item.title)}</h4><dl><div><dt>高频开场</dt><dd>${escapeHtml(item.opening)}</dd></div><div><dt>脚本结构</dt><dd>${escapeHtml(item.structure)}</dd></div></dl><small>${escapeHtml(item.references)} · 置信度 ${escapeHtml(item.confidence)}</small><button class="notify" data-topic="${escapeHtml(item.title)}">选择话题</button></div>`).join('');factoryNodes.topicGrid.querySelectorAll('button[data-topic]').forEach(button=>button.onclick=()=>notify(`已选中话题：${button.dataset.topic}`));}
+  function renderDraft(draft){factoryNodes.draftStatus.textContent=draft.status||'等待人工确认';factoryNodes.draftTitle.textContent=draft.title||'待生成标题';factoryNodes.draftLead.textContent=draft.lead||'待生成脚本摘要';factoryNodes.duration.textContent=draft.duration||'60 秒';factoryNodes.voice.textContent=draft.voice||'MiniMax T2A v2 · 最终版';factoryNodes.aspect.innerHTML=`<option selected>${escapeHtml(draft.aspect||'YouTube 16:9 · 1920×1080')}</option><option>Shorts 9:16 · 1080×1920</option>`;factoryNodes.language.innerHTML=`<option selected>${escapeHtml(draft.language||'English · North America')}</option><option>中文</option>`;factoryNodes.draftBeats.innerHTML=(draft.beats||[]).map((beat)=>`<div><b>${escapeHtml(beat.time)}</b><span>${escapeHtml(beat.scene)}</span></div>`).join('');}
+  function setVideoOutput(title, body){videoNodes.output.innerHTML=`<strong>${escapeHtml(title)}</strong>${escapeHtml(body)}`;}
+  async function fetchRealVideos(category){if(!youtubeToken)throw new Error('请先完成 YouTube 授权');const query=`${category} OR "${category}"`;const searchUrl=new URL('https://www.googleapis.com/youtube/v3/search');searchUrl.search=new URLSearchParams({part:'snippet',type:'video',maxResults:'8',order:'viewCount',q:query,videoEmbeddable:'true',safeSearch:'moderate'}).toString();const searchResponse=await fetch(searchUrl,{headers:{Authorization:`Bearer ${youtubeToken}`}});const searchData=await searchResponse.json();if(!searchResponse.ok)throw new Error(searchData?.error?.message||'YouTube 搜索失败');const ids=(searchData.items||[]).map(item=>item.id?.videoId).filter(Boolean);if(!ids.length)return [];const videosUrl=new URL('https://www.googleapis.com/youtube/v3/videos');videosUrl.search=new URLSearchParams({part:'snippet,statistics,contentDetails',id:ids.join(',')}).toString();const videosResponse=await fetch(videosUrl,{headers:{Authorization:`Bearer ${youtubeToken}`}});const videosData=await videosResponse.json();if(!videosResponse.ok)throw new Error(videosData?.error?.message||'YouTube 视频详情读取失败');return (videosData.items||[]).map((item,index)=>({title:item.snippet?.title||'Untitled',channel:item.snippet?.channelTitle||'Unknown',views:Number(item.statistics?.viewCount||0).toLocaleString(),duration:formatYouTubeDuration(item.contentDetails?.duration||''),tag:index<2?'高增长':index<4?'高互动':'持续热门',trend:index<2?'高增长':index<4?'高互动':'持续热门'}));}
+  function formatYouTubeDuration(duration){const match=duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);if(!match)return'00:00';const hours=Number(match[1]||0);const minutes=Number(match[2]||0);const seconds=Number(match[3]||0);if(hours>0)return `${hours}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;return `${minutes}:${String(seconds).padStart(2,'0')}`;}
+  function videoApiBase(){return 'https://llm-lolr1pwbnbwmup6z.cn-beijing.maas.aliyuncs.com/api/v1';}
+  async function safeReadResponse(response){const text=await response.text();if(!text.trim())return null;try{return JSON.parse(text);}catch{return {raw:text};}}
+  async function createVideoTask(){if(!providerState.apiKey)throw new Error('请先在 AI 接入里填 API Key');const baseUrl=videoApiBase();const payload={model:videoNodes.model.value,input:{prompt:videoNodes.prompt.value.trim(),duration:Number(videoNodes.duration.value||30),ratio:videoNodes.ratio.value}};if(videoNodes.mode.value==='i2v'){payload.input.image_url=videoNodes.imageUrl.value.trim();if(!payload.input.image_url)throw new Error('图生视频模式需要先填参考图 URL');}const endpoint=`${baseUrl}/services/aigc/video-generation/video-synthesis`;const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${providerState.apiKey}`},body:JSON.stringify(payload)});const data=await safeReadResponse(response);if(!response.ok)throw new Error(data?.message||data?.error?.message||data?.raw||`HTTP ${response.status}`);const taskId=data?.output?.task_id||data?.task_id||data?.result?.task_id||data?.data?.task_id||'';videoNodes.status.textContent='任务已提交';setVideoOutput('已提交',`task_id: ${taskId||'未返回'}\n原始响应: ${JSON.stringify(data,null,2)}`);return taskId||null;}
+  async function pollVideoTask(){const taskIdText=videoNodes.output.textContent.match(/task_id:\s*([^\s]+)/)?.[1];if(!taskIdText||taskIdText==='未返回')throw new Error('先生成一个视频任务，再查询状态');const baseUrl=videoApiBase();const endpoint=`${baseUrl}/tasks/${taskIdText}`;const response=await fetch(endpoint,{headers:{Authorization:`Bearer ${providerState.apiKey}`}});const data=await safeReadResponse(response);if(!response.ok)throw new Error(data?.message||data?.error?.message||data?.raw||`HTTP ${response.status}`);videoNodes.status.textContent=data?.output?.task_status||data?.output?.status||data?.status||'任务查询成功';setVideoOutput('任务状态',JSON.stringify(data,null,2));}
+  function clearVideoState(){videoNodes.imageUrl.value='';videoNodes.prompt.value='一条工程教育风格的 YouTube 产品视频，镜头稳重，强调真实质感和清晰结构。';videoNodes.duration.value='30';videoNodes.ratio.value='16:9';videoNodes.model.value='wan3.0-video-prime';videoNodes.mode.value='t2v';videoNodes.status.textContent='未配置';setVideoOutput('状态','还没有生成视频任务。先选模型和模式，再点“生成视频任务”。');}
+  async function callProvider(prompt,system){saveProviderState();if(!providerState.baseUrl||!providerState.model||!providerState.apiKey)throw new Error('请先填完整 API Host、模型名和 Key');const url=`${providerState.baseUrl.replace(/\/$/,'')}/chat/completions`;const body={model:providerState.model,messages:[{role:'system',content:system},{role:'user',content:prompt}],temperature:0.2};const response=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${providerState.apiKey}`},body:JSON.stringify(body)});const data=await response.json();if(!response.ok)throw new Error(data?.error?.message||data?.message||`HTTP ${response.status}`);return data?.choices?.[0]?.message?.content?.trim()||data?.output?.text?.trim()||'接口已连通，但没有返回可读文本。';}
+  async function testProvider(){providerNodes.output.innerHTML='<strong>测试中</strong>正在请求模型接口，请稍等…';try{const text=await callProvider(providerState.prompt,'你是和为 YouTube 工作台的 AI 助手。回答要简短、清晰，优先给出可执行建议。');providerNodes.output.innerHTML=`<strong>连通成功</strong>${escapeHtml(text)}`;providerNodes.status.textContent='已连通';providerNodes.status.classList.add('is-ready');notify('AI 接口测试通过');}catch(error){providerNodes.output.innerHTML=`<strong>测试失败</strong>${escapeHtml(error?.message||'未知错误')}`;providerNodes.status.textContent='需要检查';providerNodes.status.classList.remove('is-ready');notify('AI 接口测试失败');}}
+  async function generateProviderDraft(){providerNodes.output.innerHTML='<strong>生成中</strong>正在请求脚本草案…';const prompt=`围绕产品类目“${document.querySelector('#categoryInput')?.value?.trim()||'高压直流接触器'}”，输出一版 YouTube 短视频脚本草案，要求：1) 3 个分镜；2) 每个分镜一句画面说明；3) 一句 CTA；4) 语气偏工程教育，必须原创，不要抄竞品。`;try{const text=await callProvider(prompt,'你是和为 YouTube 工作台的脚本编导。只输出可直接用于视频生产的简短草案，保持原创。');providerNodes.output.innerHTML=`<strong>脚本草案</strong>${escapeHtml(text)}`;providerNodes.status.textContent='已产出';providerNodes.status.classList.add('is-ready');notify('脚本草案已生成');}catch(error){providerNodes.output.innerHTML=`<strong>生成失败</strong>${escapeHtml(error?.message||'未知错误')}`;providerNodes.status.textContent='需要检查';providerNodes.status.classList.remove('is-ready');notify('脚本生成失败');}}
+  async function discoverFactory(){const category=factoryNodes.category.value.trim()||'高压直流接触器';showStep(2);factoryNodes.sourceGrid.innerHTML='<div class="provider-output" style="grid-column:1/-1"><strong>采集中</strong>正在读取 YouTube 公开视频…</div>';try{const items=await fetchRealVideos(category);if(!items.length)throw new Error('没有找到公开视频');renderSourceCards(items);document.querySelectorAll('.categoryEcho').forEach(e=>e.textContent=`“${category}”`);notify('真实热门视频池已生成');}catch(error){factoryNodes.sourceGrid.innerHTML=`<div class="provider-output" style="grid-column:1/-1"><strong>生成失败</strong>${escapeHtml(error?.message||'未知错误')}</div>`;notify('热门视频池生成失败');}}
+  async function learnFactory(){const category=factoryNodes.category.value.trim()||'高压直流接触器';showStep(3);factoryNodes.topicGrid.innerHTML='<div class="provider-output" style="grid-column:1/-1"><strong>学习中</strong>正在结合真实视频池生成话题簇…</div>';try{const realVideos=await fetchRealVideos(category);const prompt=`围绕产品类目“${category}”，基于下面真实 YouTube 公开视频池提炼 3 个话题簇。每个对象必须包含 bucket,title,opening,structure,references,confidence。只返回 JSON 数组。视频池如下：${JSON.stringify(realVideos)}`;const text=await callProvider(prompt,'你是内容策略分析师，只输出严格 JSON，不要解释。');let items;try{items=JSON.parse(text);}catch{const match=text.match(/\\[[\\s\\S]*\\]/);items=match?JSON.parse(match[0]):null;}if(!Array.isArray(items)||!items.length)throw new Error('模型没有返回可解析的 JSON');renderTopicCards(items);notify('话题簇已生成');}catch(error){factoryNodes.topicGrid.innerHTML=`<div class="provider-output" style="grid-column:1/-1"><strong>生成失败</strong>${escapeHtml(error?.message||'未知错误')}</div>`;notify('话题簇生成失败');}}
+  async function produceFactory(){const category=factoryNodes.category.value.trim()||'高压直流接触器';showStep(4);factoryNodes.draftStatus.textContent='生成中';factoryNodes.draftLead.textContent='正在请求脚本和分镜…';factoryNodes.draftBeats.innerHTML='<div><b>...</b><span>模型生成中</span></div>';try{const realVideos=await fetchRealVideos(category);const text=await callProvider(`围绕产品类目“${category}”，基于真实 YouTube 公开视频池生成一版原创视频方案，格式必须是 JSON，字段包括 title, lead, aspect, language, duration, voice, status, beats(数组，每项含 time 和 scene)。视频池如下：${JSON.stringify(realVideos)}`, '你是 YouTube 视频编导，只输出严格 JSON，不要解释。');let draft;try{draft=JSON.parse(text);}catch{const match=text.match(/\\{[\\s\\S]*\\}/);draft=match?JSON.parse(match[0]):null;}if(!draft)throw new Error('模型没有返回可解析的视频方案');renderDraft(draft);notify('视频方案已生成');}catch(error){factoryNodes.draftStatus.textContent='需要检查';factoryNodes.draftLead.textContent=error?.message||'未知错误';factoryNodes.draftBeats.innerHTML='';notify('视频方案生成失败');}}
+  function clearProviderState(){Object.assign(providerState,providerDefaults);localStorage.removeItem(AI_STORAGE_KEY);renderProviderState();notify('AI 配置已清空');}
+  providerNodes.kind.onchange=()=>{providerState.kind=providerNodes.kind.value;renderProviderState();};
+  providerNodes.baseUrl.onchange=()=>{providerState.baseUrl=providerNodes.baseUrl.value.trim();renderProviderState();};
+  providerNodes.model.onchange=()=>{providerState.model=providerNodes.model.value.trim();renderProviderState();};
+  providerNodes.apiKey.onchange=()=>{providerState.apiKey=providerNodes.apiKey.value.trim();renderProviderState();};
+  providerNodes.prompt.onchange=()=>{providerState.prompt=providerNodes.prompt.value.trim()||providerDefaults.prompt;renderProviderState();};
+  document.querySelector('#providerSave').onclick=saveProviderState;
+  document.querySelector('#providerTest').onclick=testProvider;
+  document.querySelector('#providerGenerate').onclick=generateProviderDraft;
+  document.querySelector('#providerClear').onclick=clearProviderState;
+  document.querySelectorAll('[data-base]').forEach(button=>button.onclick=()=>{providerNodes.baseUrl.value=button.dataset.base;providerState.baseUrl=button.dataset.base;renderProviderState();notify('已填充接口地址');});
+  document.querySelector('#factoryDiscoverBtn').onclick=discoverFactory;
+  document.querySelector('#factoryLearnBtn').onclick=learnFactory;
+  document.querySelector('#createVideoTask').onclick=produceFactory;
+  document.querySelector('#videoGenerate').onclick=async()=>{try{await createVideoTask();notify('视频任务已提交');}catch(error){videoNodes.status.textContent='需要检查';setVideoOutput('提交失败',error?.message||'未知错误');notify('视频生成失败');}};
+  document.querySelector('#videoPoll').onclick=async()=>{try{await pollVideoTask();notify('视频任务状态已刷新');}catch(error){setVideoOutput('查询失败',error?.message||'未知错误');notify('查询视频任务失败');}};
+  document.querySelector('#videoClear').onclick=clearVideoState;
+  readProviderState();renderProviderState();
   function initGoogleAuth(){if(!window.google?.accounts?.oauth2)return false;if(tokenClient)return true;tokenClient=google.accounts.oauth2.initTokenClient({client_id:GOOGLE_CLIENT_ID,scope:YOUTUBE_SCOPES,callback:handleGoogleToken,error_callback:()=>notify('Google 授权未完成，请重试')});return true}
   async function handleGoogleToken(response){if(response.error){notify('YouTube 授权失败：'+response.error);return}youtubeToken=response.access_token;try{const res=await fetch('https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&mine=true',{headers:{Authorization:'Bearer '+youtubeToken}});const data=await res.json();if(!res.ok)throw new Error(data.error?.message||'频道读取失败');const channel=data.items?.[0];if(!channel)throw new Error('当前 Google 账号下未找到 YouTube 频道');connectedChannel=channel;const isExpected=channel.id===EXPECTED_CHANNEL_ID;document.querySelector('#connectionState').classList.add('is-connected');document.querySelector('#connectionState').innerHTML='<span class="connection-dot"></span>'+channel.snippet.title+' 已连接';document.querySelector('#channelName').textContent=channel.snippet.title;document.querySelector('#channelMeta').textContent=`频道 ID：${channel.id} · ${Number(channel.statistics.subscriberCount||0).toLocaleString()} 订阅 · ${Number(channel.statistics.videoCount||0).toLocaleString()} 个视频${isExpected?'':' · 注意：与预设 Holdwell 频道不一致'}`;const avatar=channel.snippet.thumbnails?.default?.url;if(avatar)document.querySelector('#channelAvatar').innerHTML=`<img src="${avatar}" alt="频道头像" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`;document.querySelector('#connect').textContent='重新授权';document.querySelector('#environmentBadge').textContent=isExpected?'真实频道已连接':'频道需确认';document.querySelector('#environmentBadge').style.background=isExpected?'#eaf5ef':'#fff3dc';document.querySelector('#environmentBadge').style.color=isExpected?'#177252':'#9b5c0b';notify(isExpected?'Holdwell YouTube 连接成功':'已连接，但频道 ID 与预设不一致')}catch(err){youtubeToken='';notify(err.message||'读取频道失败')}}
   document.querySelector('#connect').onclick=()=>{if(!initGoogleAuth()){notify('Google 授权组件仍在加载，请稍后再试');return}tokenClient.requestAccessToken({prompt:youtubeToken?'':'consent'})};
   let filtered=false;document.querySelector('#filterBtn').onclick=e=>{filtered=!filtered;document.querySelectorAll('.static-row').forEach(r=>r.style.display=!filtered||r.dataset.status==='待审核'?'grid':'none');e.target.textContent=filtered?'查看全部':'仅看待审核'};
-  let factoryStep=1;function showStep(step){factoryStep=Number(step);document.querySelectorAll('.pipeline-stage').forEach(s=>s.hidden=Number(s.dataset.stage)!==factoryStep);document.querySelectorAll('#pipelineSteps button').forEach(b=>{const n=Number(b.dataset.step);b.classList.toggle('current',n===factoryStep);b.classList.toggle('done',n<factoryStep);b.querySelector('i').textContent=n<factoryStep?'✓':n})}document.querySelectorAll('#pipelineSteps button').forEach(b=>b.onclick=()=>showStep(b.dataset.step));document.querySelectorAll('.next-step').forEach(b=>b.onclick=()=>{const val=document.querySelector('#categoryInput').value.trim();if(!val){notify('请先填写产品类目');return}if(Number(b.dataset.next)===2&&!youtubeToken){showTab('overview');notify('请先连接 YouTube，再采集热门视频');return}document.querySelectorAll('.categoryEcho').forEach(e=>e.textContent='“'+val+'”');showStep(b.dataset.next)});document.querySelectorAll('.prev-step').forEach(b=>b.onclick=()=>showStep(b.dataset.prev));document.querySelectorAll('.quick-tags button').forEach(b=>b.onclick=()=>document.querySelector('#categoryInput').value=b.textContent);
+  let factoryStep=1;function showStep(step){factoryStep=Number(step);document.querySelectorAll('.pipeline-stage').forEach(s=>s.hidden=Number(s.dataset.stage)!==factoryStep);document.querySelectorAll('#pipelineSteps button').forEach(b=>{const n=Number(b.dataset.step);b.classList.toggle('current',n===factoryStep);b.classList.toggle('done',n<factoryStep);b.querySelector('i').textContent=n<factoryStep?'✓':n})}
+  document.querySelectorAll('#pipelineSteps button').forEach(b=>b.onclick=()=>showStep(b.dataset.step));
+  document.querySelectorAll('.next-step').forEach(b=>b.onclick=()=>{const val=factoryNodes.category.value.trim();if(!val){notify('请先填写产品类目');return}if(Number(b.dataset.next)===2&&!youtubeToken){showTab('overview');notify('请先连接 YouTube，再采集热门视频');return}document.querySelectorAll('.categoryEcho').forEach(e=>e.textContent='“'+val+'”');if(Number(b.dataset.next)===2){discoverFactory();return}if(Number(b.dataset.next)===3){learnFactory();return}if(Number(b.dataset.next)===4){produceFactory();return}showStep(b.dataset.next)});
+  document.querySelectorAll('.prev-step').forEach(b=>b.onclick=()=>showStep(b.dataset.prev));
+  document.querySelectorAll('.quick-tags button').forEach(b=>b.onclick=()=>factoryNodes.category.value=b.textContent);
   window.addEventListener('load',()=>setTimeout(initGoogleAuth,300));
   const modal=document.querySelector('#modal');function setModal(open){modal.hidden=!open}document.querySelector('#newTask').onclick=()=>setModal(true);document.querySelectorAll('.addSlot').forEach(b=>b.onclick=()=>setModal(true));document.querySelector('#closeModal').onclick=()=>setModal(false);document.querySelector('#cancelModal').onclick=()=>setModal(false);modal.onclick=e=>{if(e.target===modal)setModal(false)};document.querySelector('#saveTask').onclick=()=>{setModal(false);notify('视频任务已保存为草稿')};
 </script>
