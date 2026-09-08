@@ -150,6 +150,26 @@
           <div class="provider-output" id="videoOutput"><strong>状态</strong>还没有生成视频任务。先选模型和模式，再点“生成视频任务”。</div>
           <p class="provider-hint">说明：百炼视频生成通常是异步任务，先返回 `task_id`，再轮询拿 `video_url`。有些模型默认带水印，`watermark` 可按官方模型能力配置。</p>
         </section>
+        <section class="provider-panel comparison-panel" aria-labelledby="comparisonTitle">
+          <div class="provider-panel-head">
+            <div><h3 id="comparisonTitle">一分钟模型实测</h3><p>同一条高压直流接触器科普脚本，比较有声叙事、工业画质和生成效率。</p></div>
+            <span class="provider-status is-ready">实测案例</span>
+          </div>
+          <div class="comparison-grid">
+            <article class="comparison-card">
+              <div class="comparison-card-head"><div><span>有声广告 / 人物讲解</span><h4>HappyHorse 1.1 · 60 秒</h4></div><b>已完成</b></div>
+              <video controls preload="metadata" src="generated/video-comparison/happyhorse-60s-web.mp4"></video>
+              <dl><div><dt>生产方式</dt><dd>4 × 15 秒分镜拼接</dd></div><div><dt>输出</dt><dd>16:9 · 1080P 源片 · 原生音轨</dd></div><div><dt>适用</dt><dd>旁白科普、人物和广告叙事</dd></div></dl>
+              <p>实测结论：音频完整、工业氛围稳定；未提供真实产品图，因此只能作为通用接触器概念画面。</p>
+            </article>
+            <article class="comparison-card" id="wanComparisonCard">
+              <div class="comparison-card-head"><div><span>重点镜头 / 长叙事</span><h4>Wan 3.0 · 60 秒</h4></div><b class="needs-review">需修订</b></div>
+              <video controls preload="metadata" src="generated/video-comparison/wan30-60s-web.mp4"></video>
+              <dl><div><dt>生产方式</dt><dd>2 × 30 秒长分镜拼接</dd></div><div><dt>输出</dt><dd>16:9 · 1080P · 原生音轨</dd></div><div><dt>适用</dt><dd>重点产品镜头、多素材参考</dd></div></dl>
+              <p>实测结论：结构细节与工业镜头更强，但生成了虚构小字和类似品牌刻印；仅作画质比较，正式发布前必须使用真实 SKU 参考图并修复伪文字。</p>
+            </article>
+          </div>
+        </section>
         </div>
         <section class="priority-grid">
           <article class="priority-card red"><div class="priority-top"><span class="mini-icon">✓</span><span>内容审核</span><b>01</b></div><h2>1 条视频待审核</h2><p>产品选型指南已完成剪辑与字幕</p><button data-jump="content">立即审核 <span>→</span></button></article>
