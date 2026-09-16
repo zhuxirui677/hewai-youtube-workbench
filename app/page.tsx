@@ -33,6 +33,8 @@ export default function Home() {
   const [approved, setApproved] = useState<string[]>([]);
   const [pipelineStep, setPipelineStep] = useState(1);
   const [category, setCategory] = useState("高压直流接触器");
+  const [publishBrand, setPublishBrand] = useState<"" | "hiitio" | "hecheng">("");
+  const [uploading, setUploading] = useState(false);
   const filteredVideos = useMemo(() => filter === "全部" ? videos : videos.filter((video) => video.status === filter), [filter]);
 
   const notify = (message: string) => {
@@ -43,6 +45,23 @@ export default function Home() {
   const approve = (title: string) => {
     setApproved((current) => [...current, title]);
     notify("已通过审核，并移入发布准备队列");
+  };
+
+  const uploadAsset = async (file: File) => {
+    if (!publishBrand) return notify("请先选择发布账号，系统不会猜测目标桶");
+    setUploading(true);
+    try {
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, "-");
+      const objectKey = `uploads/${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}-${safeName}`;
+      const response = await fetch(`/api/oss/upload?brand=${publishBrand}&key=${encodeURIComponent(objectKey)}`, { method: "POST", headers: { "content-type": file.type || "application/octet-stream" }, body: file });
+      const result = await response.json() as { error?: string; bucket?: string; publicUrl?: string };
+      if (!response.ok) throw new Error(result.error || "上传失败");
+      notify(`已上传到 ${result.bucket}`);
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "上传失败");
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -170,7 +189,7 @@ export default function Home() {
           {tab === "发布" && (
             <section className="publish-layout">
               <article className="panel calendar-panel"><div className="panel-head"><div><h3>9月发布排期</h3><p>海外账号默认 UTC+8 10:00</p></div><button onClick={() => notify("已导出当前排期草案")}>导出排期</button></div><div className="week-head">{["周一","周二","周三","周四","周五","周六","周日"].map(d=><span key={d}>{d}</span>)}</div><div className="calendar-grid">{Array.from({length:14},(_,i)=><div key={i} className={i===3||i===6?"empty-slot":""}><span>{i+1}</span>{i===0&&<b>RE+ 展会预告</b>}{i===2&&<b>接触器拆解</b>}{i===3&&<button onClick={()=>setComposerOpen(true)}>＋ 待安排</button>}{i===6&&<button onClick={()=>setComposerOpen(true)}>＋ 待安排</button>}{i===8&&<b>安装误区</b>}</div>)}</div></article>
-              <aside className="panel preflight"><h3>发布前检查</h3><p>正式发布必须全部通过</p>{["标题与描述已审核","缩略图尺寸符合要求","版权与产品声明已确认","人工最终确认","YouTube 回执已记录"].map((item,i)=><label key={item}><input type="checkbox" defaultChecked={i<2}/><span>{item}</span></label>)}<button onClick={()=>notify("尚有 3 项未完成，暂不能发布")}>运行预检</button><small>API 权限与幂等发布机制：待接入</small></aside>
+              <aside className="panel preflight"><h3>发布与素材存储</h3><p>账号决定 OSS 目标桶；未选择账号时拒绝上传。</p><label><span>发布账号</span><select value={publishBrand} onChange={(event)=>setPublishBrand(event.target.value as "" | "hiitio" | "hecheng")}><option value="">请选择账号</option><option value="hiitio">HIITIO / 海外账号</option><option value="hecheng">浙江和诚电气 / 国内账号</option></select></label><label className="upload-control"><span>{uploading ? "正在上传…" : "上传发布素材"}</span><input type="file" disabled={!publishBrand || uploading} onChange={(event)=>{const file=event.target.files?.[0];if(file)void uploadAsset(file);event.currentTarget.value=""}} /></label><small>{publishBrand === "hiitio" ? "目标桶：ai-hewei-socialmedia" : publishBrand === "hecheng" ? "目标桶：ai-hecheng-socialmedia" : "为避免误写，请先明确品牌账号。"}</small><h3>发布前检查</h3>{["标题与描述已审核","缩略图尺寸符合要求","版权与产品声明已确认","人工最终确认","YouTube 回执已记录"].map((item,i)=><label key={item}><input type="checkbox" defaultChecked={i<2}/><span>{item}</span></label>)}<button onClick={()=>notify("尚有 3 项未完成，暂不能发布")}>运行预检</button></aside>
             </section>
           )}
 
