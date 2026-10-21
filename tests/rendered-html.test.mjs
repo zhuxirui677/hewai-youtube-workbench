@@ -35,3 +35,16 @@ test("rejects unknown OSS brands", async () => {
   const response = await worker.fetch(new Request("http://localhost/api/oss/upload?brand=unknown&key=tests%2Ffile.json", { method: "POST", body: "{}" }), env, ctx);
   assert.equal(response.status, 400);
 });
+
+test("AI workflow reports missing persistence instead of accepting an untracked task", async () => {
+  const worker = await loadWorker();
+  const response = await worker.fetch(new Request("http://localhost/api/ai/workflows", {
+    method: "POST",
+    headers: { "content-type": "application/json", origin: "https://zhuxirui677.github.io" },
+    body: JSON.stringify({ title: "test", brief: { location: "Accra, Ghana" } }),
+  }), env, ctx);
+  assert.equal(response.status, 503);
+  assert.equal(response.headers.get("access-control-allow-origin"), "https://zhuxirui677.github.io");
+  const result = await response.json();
+  assert.match(result.error, /D1/);
+});

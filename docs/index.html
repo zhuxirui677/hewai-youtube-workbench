@@ -9,7 +9,9 @@
   <link rel="stylesheet" href="style.css?v=804ac0e">
   <link rel="stylesheet" href="video-quality.css?v=1">
   <link rel="stylesheet" href="script-crawl.css?v=2">
+  <link rel="stylesheet" href="reality-workflow.css?v=1">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="reality-workflow.js?v=1" defer></script>
   <style>.view{display:none}.view.active{display:block}.static-table{padding:3px 20px}.static-row{display:grid;grid-template-columns:72px 1fr 72px 80px;gap:12px;align-items:center;padding:14px 0;border-bottom:1px solid #eef0ed}.static-row:last-child{border-bottom:0}.static-row .thumb{width:72px}.static-row strong,.static-row small{display:block}.static-row strong{font-size:11px}.static-row small{font-size:9px;color:#929591;margin-top:5px}.chart-block{padding:25px}.large-bars{height:250px}.large-bars .bar-wrap span{font-size:9px}.offline-badge{background:#fff3dc;color:#9b5c0b;border-radius:20px;padding:5px 9px;font-size:9px}.modal-backdrop[hidden]{display:none}.nav-title{display:inline}.site-foot{font-size:9px;color:#999;text-align:center;padding:28px 0 0}@media(max-width:700px){.nav-title{display:none}.static-row{grid-template-columns:58px 1fr auto}.static-row>span:last-child{display:none}}</style>
 </head>
 <body>
@@ -78,6 +80,38 @@
           </div>
           <div class="provider-output" id="providerOutput"><strong>状态</strong>还没有配置模型。先填 API Host、模型名和 Key，再做一次测试。</div>
           <p class="provider-hint">说明：API Key 只保存在本地浏览器，不会写进仓库。若要正式多人使用，后续可以再把这层改成 Worker 代理，由服务端保存密钥。</p>
+        </section>
+        <section class="provider-panel reality-panel" aria-labelledby="realityTitle">
+          <div class="provider-panel-head">
+            <div><span class="reality-kicker">HUMAN-GATED PRODUCTION</span><h3 id="realityTitle">真实性制片流</h3><p>先把国家、年代和现场证据写清楚，再定分镜图片；关键帧逐条确认后，后端才允许生成视频。</p></div>
+            <span class="provider-status" id="realityStatus">事实约束</span>
+          </div>
+          <div class="reality-steps" id="realitySteps">
+            <button class="is-current" data-reality-step="1"><b>01</b><span>事实约束</span></button>
+            <button data-reality-step="2"><b>02</b><span>脚本分镜</span></button>
+            <button data-reality-step="3"><b>03</b><span>关键帧审核</span></button>
+            <button data-reality-step="4"><b>04</b><span>图生视频</span></button>
+            <button data-reality-step="5"><b>05</b><span>成片复核</span></button>
+          </div>
+          <div class="reality-brief">
+            <div class="reality-fields">
+              <label>具体国家 / 城市<input id="realityLocation" value="请填写具体国家与城市，不能只写非洲"></label>
+              <label>年代 / 季节<input id="realityPeriod" value="当代 · 旱季/雨季待核验"></label>
+              <label>人物与工作方式<input id="realityPeople" value="当地真实职业、服饰、工具与操作习惯需有参考依据"></label>
+              <label>建筑与基础设施<input id="realityArchitecture" value="当地常见材料、电力可达性与现场磨损状态"></label>
+            </div>
+            <label class="reality-wide">参考资料 URL / 客户现场说明<textarea id="realityEvidence" rows="3" placeholder="每行一条：客户现场照片、可靠报道、地区资料或明确待核验项"></textarea></label>
+            <label class="reality-wide">禁止默认生成<textarea id="realityForbidden" rows="2">未核实的小麦田；崭新无磨损的发电机；泛化的红砖中国农村；不符合当地习惯的现代缝纫机；把整个非洲表现成同一种环境</textarea></label>
+          </div>
+          <div class="reality-budget"><b>本轮生成上限</b><span>每镜头最多 2 张关键帧 · 最多 1 次视频生成 · 人工拒绝后必须回到对应步骤</span><em>当前预估：0 次生成</em></div>
+          <div class="provider-actions">
+            <button type="button" class="primary" id="realityCreate">创建真实性任务</button>
+            <button type="button" id="realityStoryboard">AI 生成脚本分镜</button>
+            <button type="button" id="realityDemo">加载非洲场景演示</button>
+          </div>
+          <div class="reality-board" id="realityBoard"><div class="reality-empty"><b>还没有分镜</b><span>先补齐地点和证据，再生成脚本。工作台不会把“非洲”当作单一视觉风格。</span></div></div>
+          <div class="reality-gate"><div><b id="realityGateTitle">视频生成已锁定</b><span id="realityGateText">所有关键帧通过人工审核后才会解锁。</span></div><button type="button" id="realityVideo" disabled>用已确认图片生成视频</button></div>
+          <p class="provider-hint">后端状态：fact_review → storyboard_ready → keyframes_review → video_ready → video_generating → video_review。前台无法跳过门禁。</p>
         </section>
         <section class="provider-panel provider-panel-video" aria-labelledby="videoEngineTitle">
           <div class="provider-panel-head">

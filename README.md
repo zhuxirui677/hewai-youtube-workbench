@@ -18,6 +18,19 @@ npm run build
 
 This starter does not use `wrangler.jsonc`.
 
+## AI video workflow backend
+
+The public workbench includes a human-gated production flow: fact brief → storyboard → keyframes → per-shot approval → image-to-video. The Worker enforces the same gate server-side, so an unapproved keyframe cannot be submitted for video generation.
+
+Before deploying the live workflow:
+
+1. Create and bind a Cloudflare D1 database as `DB`.
+2. Apply `drizzle/0001_ai_video_workflows.sql`.
+3. Configure Worker secrets/variables: `BAILIAN_API_KEY`, `BAILIAN_BASE_URL` (workspace root such as `https://{WorkspaceId}.cn-beijing.maas.aliyuncs.com`), plus optional `BAILIAN_TEXT_MODEL`, `BAILIAN_IMAGE_MODEL`, and `BAILIAN_VIDEO_MODEL`.
+4. Keep the API key server-side. The GitHub Pages UI calls the Worker API and never receives the key.
+
+Recommended defaults are `qwen3.7-plus`, `wan2.7-image`, and `wan3.0-video`. Video creation submits one five-second image-to-video task per approved keyframe; final assembly remains a separate post-production step.
+
 ## Included Shape
 
 - edit site code under `app/`
