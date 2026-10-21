@@ -2,8 +2,11 @@
 
 import { useMemo, useState } from "react";
 
-type Tab = "总览" | "爆款工厂" | "内容" | "发布" | "数据";
+type Tab = "总览" | "爆款工厂" | "AI 制片" | "内容" | "发布" | "数据";
 type Status = "待审核" | "制作中" | "已排期" | "草稿";
+type WorkflowState = "fact_review" | "storyboard_ready" | "keyframes_review" | "video_ready" | "video_generating" | "video_review" | "complete";
+type WorkflowShot = { id: string; title: string; visual: string; narration: string; evidence: string; negativePrompt: string; keyframeUrl?: string; review: "pending" | "approved" | "rejected" };
+type VideoWorkflow = { id: string; title: string; state: WorkflowState; shots: WorkflowShot[] };
 
 const videos = [
   { title: "Contactor Selection Guide: 3 Specs That Matter", type: "产品科普", owner: "Lynn", status: "待审核" as Status, date: "8月27日 10:00", duration: "04:26" },
@@ -14,7 +17,7 @@ const videos = [
 
 const weeklyBars = [38, 46, 42, 61, 58, 76, 69, 86];
 
-const tabs: Tab[] = ["总览", "爆款工厂", "内容", "发布", "数据"];
+const tabs: Tab[] = ["总览", "爆款工厂", "AI 制片", "内容", "发布", "数据"];
 
 function StatusPill({ status }: { status: Status }) {
   return <span className={`status status-${status}`}>{status}</span>;
@@ -35,11 +38,61 @@ export default function Home() {
   const [category, setCategory] = useState("高压直流接触器");
   const [publishBrand, setPublishBrand] = useState<"" | "hiitio" | "hecheng">("");
   const [uploading, setUploading] = useState(false);
+  const [realityLocation, setRealityLocation] = useState("");
+  const [realityEvidence, setRealityEvidence] = useState("");
+  const [realityWorkflow, setRealityWorkflow] = useState<VideoWorkflow | null>(null);
+  const [realityBusy, setRealityBusy] = useState(false);
   const filteredVideos = useMemo(() => filter === "全部" ? videos : videos.filter((video) => video.status === filter), [filter]);
 
   const notify = (message: string) => {
     setToast(message);
     window.setTimeout(() => setToast(""), 2600);
+  };
+
+  const realityRequest = async (path = "", init: RequestInit = {}) => {
+    const response = await fetch(`/api/ai/workflows${path}`, { headers: { "content-type": "application/json" }, ...init });
+    const result = await response.json() as { workflow?: VideoWorkflow; error?: string };
+    if (!response.ok) throw new Error(result.error || "真实性工作流请求失败");
+    return result;
+  };
+
+  const runReality = async (action: () => Promise<void>) => {
+    setRealityBusy(true);
+    try { await action(); } catch (error) { notify(error instanceof Error ? error.message : "操作失败"); }
+    finally { setRealityBusy(false); }
+  };
+
+  const createRealityWorkflow = async () => {
+    if (!realityLocation.trim()) throw new Error("请先填写具体国家和城市，不能只写“非洲”");
+    const result = await realityRequest("", { method: "POST", body: JSON.stringify({ title: "Working Song · 真实场景", brief: { location: realityLocation, period: "当代，季节待核验", evidence: realityEvidence.split("\n").filter(Boolean), forbidden: "泛非洲刻板印象、东亚农村红砖墙、崭新无磨损设备、未经核实的作物与工具" } }) });
+    setRealityWorkflow(result.workflow || null);
+    notify("真实性任务已创建");
+  };
+
+  const generateRealityStoryboard = async () => {
+    let current = realityWorkflow;
+    if (!current) { await createRealityWorkflow(); return; }
+    const result = await realityRequest(`/${current.id}/storyboard`, { method: "POST", body: "{}" });
+    setRealityWorkflow(result.workflow || null);
+  };
+
+  const generateRealityKeyframe = async (shotId: string) => {
+    if (!realityWorkflow) return;
+    const result = await realityRequest(`/${realityWorkflow.id}/keyframe`, { method: "POST", body: JSON.stringify({ shotId }) });
+    setRealityWorkflow(result.workflow || null);
+  };
+
+  const reviewRealityShot = async (shotId: string, decision: "approved" | "rejected") => {
+    if (!realityWorkflow) return;
+    const result = await realityRequest(`/${realityWorkflow.id}/review`, { method: "POST", body: JSON.stringify({ shotId, decision }) });
+    setRealityWorkflow(result.workflow || null);
+  };
+
+  const generateRealityVideo = async () => {
+    if (!realityWorkflow) return;
+    const result = await realityRequest(`/${realityWorkflow.id}/video`, { method: "POST", body: "{}" });
+    setRealityWorkflow(result.workflow || null);
+    notify("视频分镜任务已提交");
   };
 
   const approve = (title: string) => {
@@ -75,7 +128,7 @@ export default function Home() {
         <nav className="side-nav" aria-label="主导航">
           {tabs.map((item, index) => (
             <button key={item} className={tab === item ? "active" : ""} onClick={() => setTab(item)}>
-              <MiniIcon>{["⌂", "✦", "▤", "▷", "⌁"][index]}</MiniIcon>{item}
+              <MiniIcon>{["⌂", "✦", "AI", "▤", "▷", "⌁"][index]}</MiniIcon>{item}
               {item === "发布" && <span className="nav-count">2</span>}
             </button>
           ))}
@@ -183,6 +236,21 @@ export default function Home() {
                 ["应用失效案例","维修诊断","故障现场开场","症状 → 原因 → 修复 → 预防","5 条参考"]
               ].map((t,i)=><div className="topic-card" key={t[0]}><div className="topic-index">0{i+1}</div><span>{t[1]}</span><h4>{t[0]}</h4><dl><div><dt>高频开场</dt><dd>{t[2]}</dd></div><div><dt>脚本结构</dt><dd>{t[3]}</dd></div></dl><small>{t[4]} · 置信度 {91-i*4}%</small><button onClick={()=>notify(`已选中“${t[0]}”作为生成方向`)}>选择话题</button></div>)}</div></article>}
               {pipelineStep===4 && <article className="factory-stage output-stage"><div className="output-main"><span className="stage-no">04 / PRODUCE</span><div className="output-status"><i>脚本草案</i><b>等待人工确认</b></div><h3>3 Specs That Decide Whether a DC Contactor Survives</h3><p className="script-lead">“A contactor rated for the voltage can still fail in weeks. Before you specify one, check these three numbers.”</p><div className="script-beats"><div><b>00:00—00:05</b><span>故障接触器特写，提出反直觉问题</span></div><div><b>00:05—00:25</b><span>解释额定电压与实际开断能力的区别</span></div><div><b>00:25—00:48</b><span>逐项讲解负载类型、短路能力、线圈控制</span></div><div><b>00:48—00:60</b><span>给出选型检查清单与保守 CTA</span></div></div></div><aside className="output-panel"><h4>视频输出设置</h4><label>画幅<select><option>YouTube 16:9 · 1920×1080</option><option>Shorts 9:16 · 1080×1920</option></select></label><label>语言<select><option>English · North America</option><option>中文</option></select></label><label>配音<span>MiniMax T2A v2 · 最终版</span></label><label>预计时长<span>60 秒</span></label><button className="factory-primary" onClick={()=>notify("已创建视频生成任务，等待人工确认")}>确认脚本并创建视频任务</button><button className="factory-secondary" onClick={()=>setPipelineStep(3)}>返回修改话题</button><small>生成前需预算审批；成片需通过清晰度、安全与人工终审，不能自动进入发布队列。</small></aside></article>}
+            </section>
+          )}
+
+          {tab === "AI 制片" && (
+            <section className="reality-shell">
+              <div className="reality-hero"><div><span>HUMAN-GATED PRODUCTION</span><h2>先确认图片，再生成视频</h2><p>把地域事实、客户资料和现场细节固定下来。每个关键帧必须人工确认，后端才允许提交图生视频。</p></div><b>{realityWorkflow?.state || "fact_review"}</b></div>
+              <div className="reality-steps-react">{["事实约束", "脚本分镜", "关键帧审核", "图生视频", "成片复核"].map((step, index) => <div key={step}><i>0{index + 1}</i><span>{step}</span></div>)}</div>
+              <article className="panel reality-brief-react">
+                <div><label>具体国家 / 城市<input value={realityLocation} onChange={(event) => setRealityLocation(event.target.value)} placeholder="例如：Accra, Ghana" /></label><label>客户资料 / 参考依据<textarea value={realityEvidence} onChange={(event) => setRealityEvidence(event.target.value)} rows={4} placeholder="每行一条现场照片、客户说明或可靠资料 URL" /></label></div>
+                <aside><b>默认禁止生成</b><p>泛化的“非洲风格”、东亚农村红砖墙、崭新无磨损的发电机、未经核实的小麦种植与缝纫机使用方式。</p><button disabled={realityBusy} onClick={() => runReality(createRealityWorkflow)}>创建真实性任务</button><button disabled={realityBusy || !realityWorkflow} onClick={() => runReality(generateRealityStoryboard)}>AI 生成脚本分镜</button></aside>
+              </article>
+              <div className="reality-shot-list-react">
+                {realityWorkflow?.shots?.length ? realityWorkflow.shots.map((shot, index) => <article className="panel reality-shot-react" key={shot.id}><div className="reality-shot-no">0{index + 1}</div><div><h3>{shot.title}</h3><p>{shot.visual}</p><small>旁白：{shot.narration}</small><em>依据：{shot.evidence}</em></div><aside>{shot.keyframeUrl ? <img src={shot.keyframeUrl} alt={`${shot.title}关键帧`} /> : <div>等待关键帧</div>}<button disabled={realityBusy} onClick={() => runReality(() => generateRealityKeyframe(shot.id))}>{shot.keyframeUrl ? "重新生成" : "生成关键帧"}</button><div><button disabled={!shot.keyframeUrl || realityBusy} onClick={() => runReality(() => reviewRealityShot(shot.id, "approved"))}>✓ 通过</button><button disabled={!shot.keyframeUrl || realityBusy} onClick={() => runReality(() => reviewRealityShot(shot.id, "rejected"))}>× 退回</button></div></aside></article>) : <div className="panel reality-empty-react"><b>还没有分镜</b><span>先填写具体地点与参考依据。系统不会把整个非洲当作一种场景。</span></div>}
+              </div>
+              <div className="reality-gate-react"><div><b>{realityWorkflow?.state === "video_ready" ? "视频生成已解锁" : "视频生成已锁定"}</b><span>{realityWorkflow?.state === "video_ready" ? "所有关键帧均已通过人工审核。" : "全部关键帧通过后，后端才接受视频任务。"}</span></div><button disabled={realityBusy || realityWorkflow?.state !== "video_ready"} onClick={() => runReality(generateRealityVideo)}>用已确认图片生成视频</button></div>
             </section>
           )}
 

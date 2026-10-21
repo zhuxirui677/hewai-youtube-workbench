@@ -1,5 +1,7 @@
 (() => {
-  const API = "https://hewai-youtube-workbench.hewai-social.workers.dev/api/ai/workflows";
+  const API = window.location.hostname.endsWith("chatgpt.site")
+    ? "/api/ai/workflows"
+    : "https://hewai-youtube-workbench.hewai-social.workers.dev/api/ai/workflows";
   const $ = (selector) => document.querySelector(selector);
   const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]);
   const nodes = {
