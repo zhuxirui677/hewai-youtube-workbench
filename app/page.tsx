@@ -241,6 +241,7 @@ export default function Home() {
 
           {tab === "AI 制片" && (
             <section className="reality-shell">
+              <div style={{ display: "flex", gap: 10, alignItems: "center", borderLeft: "3px solid #177252", background: "#edf7f1", borderRadius: "0 7px 7px 0", padding: "11px 14px", fontSize: 10 }}><b style={{ color: "#177252" }}>公开展示模式</b><span style={{ color: "#557065" }}>国内外访客无需登录即可查看工作台；AI 生成、数据写入和素材上传仅对已登录管理员开放。</span></div>
               <div className="reality-hero"><div><span>HUMAN-GATED PRODUCTION</span><h2>先确认图片，再生成视频</h2><p>把地域事实、客户资料和现场细节固定下来。每个关键帧必须人工确认，后端才允许提交图生视频。</p></div><b>{realityWorkflow?.state || "fact_review"}</b></div>
               <div className="reality-steps-react">{["事实约束", "脚本分镜", "关键帧审核", "图生视频", "成片复核"].map((step, index) => <div key={step}><i>0{index + 1}</i><span>{step}</span></div>)}</div>
               <article className="panel reality-brief-react">

@@ -47,6 +47,11 @@ function json(data: unknown, status = 200, request?: Request) {
   return new Response(JSON.stringify(data), { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...corsHeaders(request) } });
 }
 
+function requireAuthenticatedSiteUser(request: Request) {
+  if (request.headers.get("oai-authenticated-user-id")) return null;
+  return json({ error: "公开访客只能查看工作台。AI 生成、数据库写入和素材上传需要管理员登录。" }, 401, request);
+}
+
 function workflowBase(env: Env) {
   return (env.BAILIAN_BASE_URL || "").replace(/\/$/, "");
 }
@@ -211,11 +216,15 @@ const worker = {
     const url = new URL(request.url);
 
     if (url.pathname.startsWith("/api/ai/workflows")) {
+      const unauthorized = requireAuthenticatedSiteUser(request);
+      if (unauthorized) return unauthorized;
       try { return await workflowApi(request, env, url); }
       catch (error) { return json({ error: error instanceof Error ? error.message : "AI 工作流请求失败。" }, 400, request); }
     }
 
     if (url.pathname === "/api/oss/upload") {
+      const unauthorized = requireAuthenticatedSiteUser(request);
+      if (unauthorized) return unauthorized;
       if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
       return uploadToOss(request, env);
     }

@@ -40,11 +40,22 @@ test("AI workflow reports missing persistence instead of accepting an untracked 
   const worker = await loadWorker();
   const response = await worker.fetch(new Request("http://localhost/api/ai/workflows", {
     method: "POST",
-    headers: { "content-type": "application/json", origin: "https://zhuxirui677.github.io" },
+    headers: { "content-type": "application/json", origin: "https://zhuxirui677.github.io", "oai-authenticated-user-id": "test-owner" },
     body: JSON.stringify({ title: "test", brief: { location: "Accra, Ghana" } }),
   }), env, ctx);
   assert.equal(response.status, 503);
   assert.equal(response.headers.get("access-control-allow-origin"), "https://zhuxirui677.github.io");
   const result = await response.json();
   assert.match(result.error, /D1/);
+});
+
+test("public visitors cannot invoke paid AI workflow routes", async () => {
+  const worker = await loadWorker();
+  const response = await worker.fetch(new Request("http://localhost/api/ai/workflows", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ title: "blocked" }),
+  }), env, ctx);
+  assert.equal(response.status, 401);
+  assert.match((await response.json()).error, /公开访客只能查看/);
 });
