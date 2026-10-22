@@ -57,5 +57,26 @@ test("public visitors cannot invoke paid AI workflow routes", async () => {
     body: JSON.stringify({ title: "blocked" }),
   }), env, ctx);
   assert.equal(response.status, 401);
-  assert.match((await response.json()).error, /公开访客只能查看/);
+  assert.match((await response.json()).error, /国内测试码/);
+});
+
+test("a valid domestic test code reaches the workflow service without a site login", async () => {
+  const worker = await loadWorker();
+  const response = await worker.fetch(new Request("http://localhost/api/ai/workflows", {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-test-access-code": "shared-test-code" },
+    body: JSON.stringify({ title: "test" }),
+  }), { ...env, PUBLIC_TEST_ACCESS_CODE: "shared-test-code" }, ctx);
+  assert.equal(response.status, 503);
+  assert.match((await response.json()).error, /数据库|D1/);
+});
+
+test("AI preflight allows the domestic test-code header", async () => {
+  const worker = await loadWorker();
+  const response = await worker.fetch(new Request("http://localhost/api/ai/workflows", {
+    method: "OPTIONS",
+    headers: { origin: "https://zhuxirui677.github.io" },
+  }), env, ctx);
+  assert.equal(response.status, 204);
+  assert.match(response.headers.get("access-control-allow-headers") || "", /x-test-access-code/);
 });

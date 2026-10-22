@@ -11,6 +11,7 @@ interface Env {
   BAILIAN_TEXT_MODEL?: string;
   BAILIAN_IMAGE_MODEL?: string;
   BAILIAN_VIDEO_MODEL?: string;
+  PUBLIC_TEST_ACCESS_CODE?: string;
   OSS_HEWEI_ACCESS_KEY_ID?: string;
   OSS_HEWEI_ACCESS_KEY_SECRET?: string;
   OSS_HECHENG_ACCESS_KEY_ID?: string;
@@ -38,7 +39,7 @@ function corsHeaders(request?: Request) {
   return {
     "access-control-allow-origin": CORS_ORIGINS.has(origin) ? origin : "https://zhuxirui677.github.io",
     "access-control-allow-methods": "GET,POST,OPTIONS",
-    "access-control-allow-headers": "content-type",
+    "access-control-allow-headers": "content-type,x-test-access-code",
     vary: "Origin",
   };
 }
@@ -50,6 +51,42 @@ function json(data: unknown, status = 200, request?: Request) {
 function requireAuthenticatedSiteUser(request: Request) {
   if (request.headers.get("oai-authenticated-user-id")) return null;
   return json({ error: "公开访客只能查看工作台。AI 生成、数据库写入和素材上传需要管理员登录。" }, 401, request);
+}
+
+class HttpError extends Error {
+  constructor(message: string, readonly status: number) { super(message); }
+}
+
+async function digest(value: string) {
+  const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(bytes), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+async function hasValidTestCode(request: Request, env: Env) {
+  const expected = env.PUBLIC_TEST_ACCESS_CODE || "";
+  const supplied = request.headers.get("x-test-access-code") || "";
+  if (!expected || !supplied) return false;
+  return (await digest(expected)) === (await digest(supplied));
+}
+
+async function authorizeWorkflow(request: Request, env: Env) {
+  if (request.headers.get("oai-authenticated-user-id")) return { isTestUser: false };
+  if (await hasValidTestCode(request, env)) return { isTestUser: true };
+  throw new HttpError("请输入有效的国内测试码；管理员也可以登录后使用完整功能。", 401);
+}
+
+async function checkAndRecordTestUsage(request: Request, env: Env, action: "create" | "storyboard" | "keyframe" | "video") {
+  if (!env.DB) throw new HttpError("AI 工作流数据库尚未绑定。", 503);
+  const limits = { create: 6, storyboard: 3, keyframe: 6, video: 1 } as const;
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const source = `${request.headers.get("cf-connecting-ip") || "local"}|${request.headers.get("user-agent") || "unknown"}`;
+  const clientHash = await digest(source);
+  const state = `test_usage:${action}:${clientHash}`;
+  const row = await env.DB.prepare("SELECT COUNT(*) AS count FROM ai_video_workflows WHERE state = ? AND created_at >= ?").bind(state, since).first<{ count: number }>();
+  if (Number(row?.count || 0) >= limits[action]) throw new HttpError(`该测试来源 24 小时内的${action === "storyboard" ? "脚本分镜" : action === "keyframe" ? "关键帧" : action === "video" ? "视频" : "新建任务"}额度已用完，请稍后再试或联系管理员。`, 429);
+  const now = new Date().toISOString();
+  await env.DB.prepare("INSERT INTO ai_video_workflows (id,title,state,payload,created_at,updated_at) VALUES (?,?,?,?,?,?)")
+    .bind(`usage-${crypto.randomUUID()}`, "国内测试额度记录", state, JSON.stringify({ action }), now, now).run();
 }
 
 function workflowBase(env: Env) {
@@ -96,7 +133,7 @@ function parseModelJson(text: string) {
   }
 }
 
-async function workflowApi(request: Request, env: Env, url: URL) {
+async function workflowApi(request: Request, env: Env, url: URL, isTestUser: boolean) {
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders(request) });
   const parts = url.pathname.split("/").filter(Boolean);
   const id = parts[3];
@@ -104,6 +141,7 @@ async function workflowApi(request: Request, env: Env, url: URL) {
   if (!env.DB) return json({ error: "AI 工作流数据库尚未绑定。请先创建 D1 并执行 drizzle/0001_ai_video_workflows.sql。" }, 503, request);
 
   if (request.method === "POST" && parts.length === 3) {
+    if (isTestUser) await checkAndRecordTestUsage(request, env, "create");
     const body = await readJson(request);
     const now = new Date().toISOString();
     const workflow: VideoWorkflow = { id: crypto.randomUUID(), title: String(body.title || "非洲品牌真实性视频"), state: "fact_review", brief: body.brief || {}, shots: [], createdAt: now, updatedAt: now };
@@ -116,6 +154,7 @@ async function workflowApi(request: Request, env: Env, url: URL) {
   if (request.method === "GET" && parts.length === 4) return json({ workflow }, 200, request);
 
   if (request.method === "POST" && action === "storyboard") {
+    if (isTestUser) await checkAndRecordTestUsage(request, env, "storyboard");
     const result = await bailian(env, "/compatible-mode/v1/chat/completions", { model: env.BAILIAN_TEXT_MODEL || "qwen3.7-plus", messages: [{ role: "system", content: "只输出严格 JSON。事实不确定时必须标记待核验，不得补写为事实。" }, { role: "user", content: buildRealityPrompt(workflow.brief) }], temperature: 0.1 });
     const parsed = parseModelJson(result?.choices?.[0]?.message?.content || "");
     workflow.title = String(parsed.title || workflow.title);
@@ -126,6 +165,7 @@ async function workflowApi(request: Request, env: Env, url: URL) {
   }
 
   if (request.method === "POST" && action === "keyframe") {
+    if (isTestUser) await checkAndRecordTestUsage(request, env, "keyframe");
     const body = await readJson(request); const shot = workflow.shots.find((item) => item.id === body.shotId);
     if (!shot) return json({ error: "分镜不存在。" }, 404, request);
     const result = await bailian(env, "/api/v1/services/aigc/multimodal-generation/generation", { model: env.BAILIAN_IMAGE_MODEL || "wan2.7-image", input: { messages: [{ role: "user", content: [{ text: `${shot.visual}\n真实性依据：${shot.evidence}\n排除：${shot.negativePrompt}` }] }] }, parameters: { size: "1920*1080", n: 1 } });
@@ -143,6 +183,7 @@ async function workflowApi(request: Request, env: Env, url: URL) {
 
   if (request.method === "POST" && action === "video") {
     assertVideoReady(workflow);
+    if (isTestUser) await checkAndRecordTestUsage(request, env, "video");
     const results = [];
     for (const shot of workflow.shots) {
       const result = await bailian(env, "/api/v1/services/aigc/video-generation/video-synthesis", { model: env.BAILIAN_VIDEO_MODEL || "wan3.0-video", input: { prompt: `${shot.visual}。保持第一帧中的人物、设备、建筑与地域细节，不添加文字、Logo 或未经证实的新物体。`, media: [{ type: "first_frame", url: shot.keyframeUrl }] }, parameters: { duration: 5, ratio: "16:9", resolution: "1080P", prompt_extend: false } }, true);
@@ -216,10 +257,12 @@ const worker = {
     const url = new URL(request.url);
 
     if (url.pathname.startsWith("/api/ai/workflows")) {
-      const unauthorized = requireAuthenticatedSiteUser(request);
-      if (unauthorized) return unauthorized;
-      try { return await workflowApi(request, env, url); }
-      catch (error) { return json({ error: error instanceof Error ? error.message : "AI 工作流请求失败。" }, 400, request); }
+      if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders(request) });
+      try {
+        const auth = await authorizeWorkflow(request, env);
+        return await workflowApi(request, env, url, auth.isTestUser);
+      }
+      catch (error) { return json({ error: error instanceof Error ? error.message : "AI 工作流请求失败。" }, error instanceof HttpError ? error.status : 400, request); }
     }
 
     if (url.pathname === "/api/oss/upload") {

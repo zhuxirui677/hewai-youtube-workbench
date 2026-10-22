@@ -42,6 +42,7 @@ export default function Home() {
   const [realityEvidence, setRealityEvidence] = useState("");
   const [realityWorkflow, setRealityWorkflow] = useState<VideoWorkflow | null>(null);
   const [realityBusy, setRealityBusy] = useState(false);
+  const [testAccessCode, setTestAccessCode] = useState("");
   const filteredVideos = useMemo(() => filter === "全部" ? videos : videos.filter((video) => video.status === filter), [filter]);
 
   const notify = (message: string) => {
@@ -50,7 +51,7 @@ export default function Home() {
   };
 
   const realityRequest = async (path = "", init: RequestInit = {}) => {
-    const response = await fetch(`/api/ai/workflows${path}`, { headers: { "content-type": "application/json" }, ...init });
+    const response = await fetch(`/api/ai/workflows${path}`, { ...init, headers: { "content-type": "application/json", ...(testAccessCode ? { "x-test-access-code": testAccessCode } : {}), ...(init.headers || {}) } });
     const result = await response.json() as { workflow?: VideoWorkflow; error?: string };
     if (!response.ok) throw new Error(result.error || "真实性工作流请求失败");
     return result;
@@ -241,11 +242,11 @@ export default function Home() {
 
           {tab === "AI 制片" && (
             <section className="reality-shell">
-              <div style={{ display: "flex", gap: 10, alignItems: "center", borderLeft: "3px solid #177252", background: "#edf7f1", borderRadius: "0 7px 7px 0", padding: "11px 14px", fontSize: 10 }}><b style={{ color: "#177252" }}>公开展示模式</b><span style={{ color: "#557065" }}>国内外访客无需登录即可查看工作台；AI 生成、数据写入和素材上传仅对已登录管理员开放。</span></div>
+              <div style={{ display: "flex", gap: 10, alignItems: "center", borderLeft: "3px solid #177252", background: "#edf7f1", borderRadius: "0 7px 7px 0", padding: "11px 14px", fontSize: 10 }}><b style={{ color: "#177252" }}>国内测试模式</b><span style={{ color: "#557065" }}>无需 ChatGPT 登录。输入测试码即可实际生成脚本、关键帧和视频任务；百炼密钥不会发送到浏览器。</span></div>
               <div className="reality-hero"><div><span>HUMAN-GATED PRODUCTION</span><h2>先确认图片，再生成视频</h2><p>把地域事实、客户资料和现场细节固定下来。每个关键帧必须人工确认，后端才允许提交图生视频。</p></div><b>{realityWorkflow?.state || "fact_review"}</b></div>
               <div className="reality-steps-react">{["事实约束", "脚本分镜", "关键帧审核", "图生视频", "成片复核"].map((step, index) => <div key={step}><i>0{index + 1}</i><span>{step}</span></div>)}</div>
               <article className="panel reality-brief-react">
-                <div><label>具体国家 / 城市<input value={realityLocation} onChange={(event) => setRealityLocation(event.target.value)} placeholder="例如：Accra, Ghana" /></label><label>客户资料 / 参考依据<textarea value={realityEvidence} onChange={(event) => setRealityEvidence(event.target.value)} rows={4} placeholder="每行一条现场照片、客户说明或可靠资料 URL" /></label></div>
+                <div><label>国内测试码<input type="password" autoComplete="off" value={testAccessCode} onChange={(event) => setTestAccessCode(event.target.value.trim())} placeholder="由管理员提供；登录管理员可留空" /></label><label>具体国家 / 城市<input value={realityLocation} onChange={(event) => setRealityLocation(event.target.value)} placeholder="例如：Accra, Ghana" /></label><label>客户资料 / 参考依据<textarea value={realityEvidence} onChange={(event) => setRealityEvidence(event.target.value)} rows={4} placeholder="每行一条现场照片、客户说明或可靠资料 URL" /></label></div>
                 <aside><b>默认禁止生成</b><p>泛化的“非洲风格”、东亚农村红砖墙、崭新无磨损的发电机、未经核实的小麦种植与缝纫机使用方式。</p><button disabled={realityBusy} onClick={() => runReality(createRealityWorkflow)}>创建真实性任务</button><button disabled={realityBusy || !realityWorkflow} onClick={() => runReality(generateRealityStoryboard)}>AI 生成脚本分镜</button></aside>
               </article>
               <div className="reality-shot-list-react">
